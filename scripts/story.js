@@ -31,12 +31,16 @@ $(document).ready(function() {
         new character('monk', 'images/monk.png', 60, 0, 10, 4, {"name": "Armor of God (magic)", "description": "Recovers 7 hp every round."})
     ];
 
+    // create the king
+    var kingName = "Babadoligo";
+    sorcerorKing = new character(kingName, 'images/death.jpg', 600, 10, 10, 4, {"name": "Armor of God (magic)", "description": "Recovers 7 hp every round."})
+
     continueStory();
     return;
 
     // show welcome message after image fades in
         setTimeout(() => {
-        openDialog ("Welcome", "You have been captured by the evil sorceror king Bavedelios and transported to his infamous mountain fortress, where you will be forced to fight for his entertainment.  Your survival is unlikely, but possible if you choose wisely.",
+        msgBox ("Welcome", "You have been captured by the evil sorceror king " + sorcerorKing.name + " and transported to his infamous mountain fortress, where you will be forced to fight for his entertainment.  Your survival is unlikely, but possible if you choose wisely.",
         dialogButtons([ {
             text: "Ok",
             function: continueStory
@@ -55,7 +59,7 @@ function continueStory(){
 
             // show welcome message after image fades in
             setTimeout(() => {
-                openDialog ("Select Character", "The first choice you must make is your own character.  Be advised that whichever you don't pick will become your opponents.  If you manage to defeat them, you will gain their abilities.",
+                msgBox ("Select Character", "The first choice you must make is your own character.  Be advised that whichever you don't pick will become your opponents.  If you manage to defeat them, you will gain their abilities.",
                 dialogButtons([{
                     text: "Ok",
                     function: continueStory
@@ -73,6 +77,7 @@ function continueStory(){
         // show character info on hover
         characters.forEach(element => {
             $(element.img)
+            .addClass("highlight")
             .mouseover( function(){
                 $("#statsWindow")
                     .html(
@@ -110,7 +115,7 @@ function continueStory(){
     case 2:
         // choosing opponet
         setTimeout(() => {
-            openDialog ("Select Opponent", "Having drawn the short straw, you will have to fight first.  Your only consolation is that you get to choose your first opponent...",
+            msgBox ("Select Opponent", "Having drawn the short straw, you will have to fight first.  Your only consolation is that you get to choose your first opponent...",
             dialogButtons([{
                 text: "Ok",
                 function: continueStory
@@ -152,33 +157,43 @@ function continueStory(){
         break;
 
     case 4:
-        // clear stats
-        $("#statsWindow").hide();
-        // fighting time
-        $("#banner").text("Press spacebar to attack!");
-        
-        // have the opponent bounce around
-        setInterval(() => {
-            if (opponent.y < 0.3){
-                opponent.move(0.666, 0.75, opponent.speed)
-            }
-            else {
-                opponent.move(0.666, 0.25, opponent.speed)
-            }
-        }, opponent.speed);
-        // prepare to strike
-        $(document).on("keydown", function(event){
-            // attack
-            yourCharacter.attack(opponent);
-        });
 
-        // character1 attacks
-        // since this is human, wait for space key
-        // character2 counter-attacks
-        // character2 attacks (or uses special)
-        // brief window during which human player can counter
+    // battle scene
+    // fight() will call continueStory() when it's over    
+    fight();
         break;
 
+    case 5:
+        // you win - boss??
+        msgBox ("Survival!", "You have defeated your opponents and gained their powers.  But can you defeat king")
+        break;
     }
+
+}
+
+function fight(){
+    // clear stats
+    $("#statsWindow").hide();
+    // clear highlighting
+    $(".characterImg").removeClass("highlight")
+    // fighting time
+    $("#banner").text("Press spacebar to attack!");
+    
+    // have the opponent bounce around
+    setInterval(() => {
+        if (opponent.y < 0.3){
+            opponent.move(0.666, 0.75, opponent.speed)
+        }
+        else {
+            opponent.move(0.666, 0.25, opponent.speed)
+        }
+    }, opponent.speed  * 1.1);
+
+    // prepare to strike
+    $(document).on("keydown", function(event){
+        // attack
+        yourCharacter.attack(opponent);
+        
+    });
 }
 

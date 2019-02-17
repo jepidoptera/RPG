@@ -20,7 +20,7 @@ function activateKeyPresses(){
  * @param {title} string
  * @param {message} string
  */
-function openDialog(/*string*/title, /*string*/message, /*dialogButtons*/buttons) {
+function msgBox(/*string*/title, /*string*/message, /*dialogButtons*/buttons) {
     // no keypress events while dialog is open
     // all buttons will have been set to reactivate keypresses on click
     deactivateKeyPresses();
