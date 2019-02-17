@@ -33,13 +33,13 @@ body {
 
 #arenaWindow {
     position: absolute;
-    height: 40%; 
-    width: 40%;
+    height: 50%; 
+    width: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* border: 1px solid white; */
-    text-align: left;
+    text-align: center;
     color: white;
     padding: 20px;
 }
@@ -57,6 +57,16 @@ body {
     display: flex;
     flex-direction: column;
     background-color: black;
+    margin: auto 0;
+}
+
+#banner {
+    position: relative;
+    top: 0;
+    display: inline-block;
+    background-color: black;
+    color: whitesmoke;
+    font-size: 5vh;
 }
 
 hr {
