@@ -38,13 +38,19 @@ class character {
             "top": y * 100 + "%",
             // in this way the outer borders will always stay within the window
             "transform": "translate(-" + x * 100 + "%, -" + y * 100 + "%)"
-        })
+        });
         $("#mainWindow").append(this.img);
     }
 
     move(x, y) {
         this.x = x;
         this.y = y;
-        this.img.animate({"left": x * 100 + "%", "top": y * 100 + "%"})
+        this.img.animate({"left": x * 100 + "%", "top": y * 100 + "%"},
+        {step: function(){
+            $(this).css({"transform": "translate(-" + 
+            parseInt($(this)[0].style.left) + "%, -" + 
+            parseInt($(this)[0].style.top) + "%)"
+        });
+    }});
     }
 }
