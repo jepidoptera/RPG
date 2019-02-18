@@ -3,7 +3,7 @@ var msgDiv;
 var keyDownFunction, keyUpFunction;
 
 function deactivateKeyPresses(){
-    // store whatever key functions are being used, reactiveate them after dialog closes
+    // store whatever key functions are being used, reactivate them after dialog closes
     keyUpFunction = document.onkeyup;
     keyDownFunction = document.onkeydown;
     document.onkeydown = null;
@@ -16,10 +16,7 @@ function activateKeyPresses(){
     document.onkeyup = keyUpFunction;
 }
 
-/**
- * @param {title} string
- * @param {message} string
- */
+// javascript doesn't do type hinting, unfortunately.
 function msgBox(/*string*/title, /*string*/message, /*dialogButtons*/buttons) {
     // no keypress events while dialog is open
     // all buttons will have been set to reactivate keypresses on click
@@ -70,13 +67,13 @@ function dialogButtons (buttons){
     return buttons.map (function(button) {
         // for each button, return a new button which is the same,
         // except its function has been wrapped in another function
-        // which includes these three required actions
+        // which includes these required actions
         // and adds a button class
         return {
             text: button.text,
-            class: "button",
+            class: "button msgButton",
             click: function() {
-                // close dialog box and remove div
+                // close dialog box, remove div
                 $(this).dialog("close");
                 msgDiv.remove();
                 // user-defined custom function

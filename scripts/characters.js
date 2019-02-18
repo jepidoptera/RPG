@@ -3,6 +3,8 @@
 // character 2 : shieldbearer : shield
 // character 4 : monk : heals
 
+var nullFieldActive = false;
+
 class character {
     constructor (name, img, maxHp, strength, counter, speed, special) {
         this.name = name;
@@ -21,6 +23,9 @@ class character {
         this.hp = this.maxHp;
         this.strength = strength;
         this.counter = counter;
+        // for stats window
+        this.quickness = speed;
+        // for actual delay between actions
         this.speed = parseInt(2400 / speed);
         this.special = special;
         this.x = 0;
@@ -31,62 +36,149 @@ class character {
     }
 
     attack(otherCharacter) {
-        // delay ability of next attack
-        if (this.attacking() > 0) return;
+        // delay possibility of next attack
+        if (this.attacking()) return;
         this.nextAttack = now() + this.speed * 2;
         // animate? yes
-        this.move(otherCharacter.x, this.y);
+        if (this.strength > 0) {
+            this.move(otherCharacter.x + 0.1 * Math.sign(this.x - otherCharacter.x), this.y, this.speed);
+            setTimeout(() => {this.hit(otherCharacter)}, this.speed);
+        }
+        // console.log(otherCharacter.x + 0.1 * Math.sign(this.x - otherCharacter.x));
         // half a second     
-        setTimeout(() => this.hit(otherCharacter), this.speed)
         // move back afterward and use special
-        var self = this; var x = this.x; var y = this.y;
+        var x = this.x; var y = this.y;
         setTimeout(() => {this.move(x, y, this.speed); this.useSpecial()}, this.speed);
     }
 
     attacking() {
         // currently in the middle of an attack?
-        // returns > 0 if true
-        return this.nextAttack - now();
+        // returns > 0 if true, 0 if false
+        return Math.max(0, this.nextAttack - now());
     }
 
     hit(otherCharacter) {
         // the better your timing, the more damage you do
-        var directness = 1 - Math.abs(this.y - otherCharacter.y);
-        var damage = this.strength * directness;
-        otherCharacter.hp -= damage;
-        // tire? haven't iplemented this yet, or decided how to
-        this.stamina -= 1;
+        var skill = 1 - Math.abs(this.y - otherCharacter.y) * 2;
+        this.damage = Math.ceil(this.strength * skill);
         // computer controlled player will automatically counterattack
         if(otherCharacter.ai) setTimeout(() => {
             otherCharacter.counterAttack(this);
         }, otherCharacter.speed);
-        this.pause(damage * 75);
-        otherCharacter.pause(damage * 75);
-        // show damage
-        $(otherCharacter.img).append(
-            $("<div class=hpPopup></div>")
-            .text("-" + damage)
-            .css({"top": "0px"})
-            .animate({"top": "0%"}, 
-                {"duration": 750, 
-                "complete": function() {$(this).remove();}
-            })
-            .fadeOut(750)
-        );        
+        // other character's special activates
+        otherCharacter.special;
+        // freeze to show damage
+        this.pause(this.damage * 75);
+        // turn defender's border briefly red
+        otherCharacter.img.css({"border": "4px solid red"});
+        setTimeout(() => {
+            otherCharacter.img.css({"border": "2px solid black"});
+        }, 100);
+        // otherCharacter.pause(this.damage * 75);
+        // pause, then show damage (give other character a chance to defend)
+        setTimeout(() => {
+            this.hurt(otherCharacter);
+        }, this.damage * 75);
     }
 
     counterAttack(otherCharacter) {
-        var opponent = otherCharacter;
+        // shieldbearer blocks instead of counterattack
+        if (this.special.name == "Defend") {
+            this.block(otherCharacter);
+            return;
+        }
+        // caculate skill (timing)
+        var skill = Math.max(0, otherCharacter.speed / 
+            (otherCharacter.attacking() + (otherCharacter.attacking() - otherCharacter.speed) * difficulty));
+        console.log("counter skill: " + skill);
+        // adjust damage
+        this.damage = Math.ceil(this.counter * skill);
+        // set up animations
+        var x = this.x; var y = this.y;
+        this.move(x + (0.1 * Math.sign(x - 0.5)), otherCharacter.y, this.speed / 4);
         setTimeout(() => {
-            () =>{this.move(opponent.x, opponent.y, this.speed / 2);}
-        }, this.speed); 
+            this.move(x , otherCharacter.y, this.speed / 4);
+        }, this.speed / 4); 
+        setTimeout(() => {
+            this.hurt(otherCharacter);
+        }, this.speed / 2);
+    }
+
+    block(otherCharacter) {
+        var timeRemaining = otherCharacter.attacking();
+        var skill = Math.max(0, timeRemaining / otherCharacter.speed);
+        console.log("block skill: " + skill);
+
+        otherCharacter.damage = Math.floor(otherCharacter.damage * (1 - skill));
+        this.img.animate({"border": skill * skill * 20 + "px solid white"});
+
+        // let them know how they did
+        if (skill < 0.5){
+            this.buffText("weak!", "white");
+        }
+        else if (skill < 0.75){
+            this.buffText("slightly late!", "white");
+        }
+        else if (otherCharacter.damage > 0){
+            // good, but not quite perfect
+            this.buffText("excellent!", "white");
+        }
+        else {
+            console.log("perfect: " + otherCharacter.damage)
+            this.buffText("perfect!", "white");
+        }
+        // prevent damage
+    }
+
+    hurt(otherCharacter) {
+        otherCharacter.buffText("-" + this.damage, "red");
+        otherCharacter.hp -= this.damage;
+        if (otherCharacter.hp <= 0) {
+            otherCharacter.die();
+        }
+    }
+
+    die() {
+
     }
 
     useSpecial(){
-        switch (this.special) {
+        // null field cancels magical effects
+        if (nullFieldActive && this.special.isMagic) return;
+        // otherwise, do the thing
+        switch (this.special.name) {
         case "Null Field":
+            nullFieldActive = true;
+            break;
+        case "Armor of God":
+            // only once per turn    
+            if (!this.attacking()) return;
+            if (this.hp < this.maxHp) this.buffText("+" + Math.min(7, this.maxHp - this.hp), "green");
+            this.hp = Math.min(this.maxHp, this.hp + 7);
+            break;
+        case "Blood Frenzy":
+            // only once per turn    
+            if (!this.attacking()) return;
+            this.strength += 4;
+            setTimeout(() => {this.buffText("+4", "blue");}, this.speed);
+            break;
+        case "Defend":
             break;
         }
+    }
+
+    buffText(text, color) {
+        if (color == undefined) color = "red";
+        $(this.img).append(
+            $("<div class=hpPopup></div>")
+            .text(text)
+            .animate({"top": "-50%"}, 
+                {"duration": 750, 
+                "complete": function() {$(this).remove();}
+            })
+            .css({"color": color})
+            .fadeOut(750)
+        );        
     }
 
     position(x, y) {
@@ -137,12 +229,13 @@ class character {
 
     pause(miliseconds){
         this.img.pause();
-        this.nextAttack += miliseconds;
+        // this.nextAttack += miliseconds;
         setTimeout(() => {
            this.img.resume(); 
         }, miliseconds);
         this.pausedAt = now();
         this.pausedFor = miliseconds;
+        // console.log("paused (" + miliseconds + ")");
     }
 
     pauseRemaining() {
