@@ -26,14 +26,6 @@ $(document).ready(function() {
     // add it to the page
     $('body').append($(img));
 
-    // create four characters≈≈
-    characters = [
-        new character('berserker', 'images/berserker.png', 75, 40, 5, 6, [{"name": "Blood Frenzy", "description": "Each time this charcter attacks, his strength increases by 4.", "isMagic": true}]),
-        new character('antimage', 'images/antimage.png', 50, 16, 5, 7, [{"name": "Null Field", "description": "Magical abilities don't work when fighting Anitmage.", "isMagic": false}]),
-        new character('shieldbearer', 'images/shieldbearer.png', 100, 9, 0, 5, [{"name": "Defend", "description": "Can deflect damage with a well-timed shield block.", "isMagic": false}]),
-        new character('monk', 'images/monk.png', 60, 0, 10, 4, [{"name": "Armor of God", "description": "Recovers 7 hp every round.", "isMagic": true}])
-    ];
-
     // create the king
     var kingName =  randomName(9 + Math.round(Math.random())); // "Babadoligo";
     sorcerorKing = new character(kingName, 'images/death.jpg', 600, 10, 10, 4, {"name": "Armor of God (magic)", "description": "Recovers 7 hp every round."})
@@ -239,6 +231,7 @@ function setOpponent(character) {
     character.move(0.666, 0.5);
 }
 
+var turn = 0;
 function fight(){
     // activate special abilities
     yourCharacter.useSpecial();
@@ -252,15 +245,23 @@ function fight(){
     // clear highlighting
     $(".characterImg").removeClass("highlight");
     // fighting time
-    $("#banner").show().text("Press spacebar to attack!");
-    $("#subtext").show().text("Time your attack for maximum damage.");
+    if (yourCharacter.activeSpecial.name == "Armor of God") {
+        $("#banner").show().text("Press spacebar to heal!");
+        $("#subtext").hide();    
+    }
+    else {
+        $("#banner").show().text("Press spacebar to attack!");
+        $("#subtext").show().text("Time your attack for maximum damage.");    
+    }
 
     // set them against each other
     yourCharacter.opponent = opponent;
     opponent.opponent = yourCharacter;
     yourCharacter.ai = false;
-    var turn = 0;
     var blocked = false;
+
+    // default special
+    yourCharacter.selectSpecial(yourCharacter.activeSpecial.name);
 
     // have the opponent bounce around
     var gameloop = setInterval(() => {
@@ -350,6 +351,7 @@ function fight(){
                 }
                 else {
                     $("#banner").show().text("Wait for it...");
+                    $("#subtext").hide();
                 }
             }
         }, delay - 2000);            
@@ -359,8 +361,14 @@ function fight(){
         // then your turn again
         setTimeout(() => {
             // your turn again
-            $("#banner").show().text("Attack!");
-            $("#subtext").show().text("Time your attack for maximum damage.");                
+            if (yourCharacter.activeSpecial.name == "Armor of God") {
+                $("#banner").show().text("Press spacebar to heal!");
+                $("#subtext").hide();    
+            }
+            else {
+                $("#banner").show().text("Press spacebar to attack!");
+                $("#subtext").show().text("Time your attack for maximum damage.");    
+            }
             turn = 0;
         }, delay + opponent.speed * 2 + 1000);
     }
@@ -416,28 +424,20 @@ function refreshStats ($div, character, style) {
             "HP: " + character.hp + " / " + character.maxHp + "<br><br>" +
             "ATTACK: " + character.strength + "<br><br>" +
             "COUNTER-ATTACK: " + character.counter + "<br><br>" +
+            ((character == yourCharacter && yourCharacter.special.length > 1)
             // show all specials (collect them all!)
-            character.special.map((special) => { 
-                return '<input type = "radio" \
-                name = "specials" \
-                id = "' + special.name + '" \
-                value = "small" \
-                checked = "checked" />';}))
-               // return special.name + ((special.isMagic)
-                // ? (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')
-                // : "");}).join("<br><br>"))
+            ? character.special.map((special) => { 
+                // a clumsy hack to avoid spaces
+                return '<div id="' + special.name.slice(0, 4) + '" \
+                class="specialButton" \
+                onclick="yourCharacter.selectSpecial(\'' + special.name + '\')" \
+                >' + special.name + ((!special.isMagic) ? ""
+                : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + '</div>';}).join("<br>")
+            : character.activeSpecial.name + ((!character.activeSpecial.isMagic) ? ""
+                : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + 
+                ("<br><br>") ))
         .show();
-        //   <label for = "sizeSmall">small</label>
-        //   <input type = "radio"
-        //          name = "radSize"
-        //          id = "sizeMed"
-        //          value = "medium" />
-        //   <label for = "sizeMed">medium</label>
-        //   <input type = "radio"
-        //          name = "radSize"
-        //          id = "sizeLarge"
-        //          value = "large" />
-        
+        if (character == yourCharacter) yourCharacter.selectSpecial(yourCharacter.activeSpecial.name);
     }
     else {
         $div

@@ -1,10 +1,5 @@
 // jshint esversion: 6
 
-// character 0 : berserker: attack power increases each time. beats monk.
-// character 1 : antimage : nullifies other characters' powers. beats berserker.
-// character 2 : shieldbearer : shield
-// character 4 : monk : heals
-
 var nullFieldActive = false;
 
 class character {
@@ -30,6 +25,7 @@ class character {
         // for actual delay between actions
         this.speed = parseInt(2400 / speed);
         this.special = special;
+        this.activeSpecial = special[0];
         this.x = 0;
         this.y = 0;
         this.dead = false;
@@ -114,7 +110,8 @@ class character {
         }
 
         // shieldbearer blocks instead of counterattack
-        if (this.special.map((special) => {return special.name;}).indexOf("Defend") >= 0) {
+        // if (this.special.map((special) => {return special.name;}).indexOf("Defend") >= 0) {
+        if (this.activeSpecial.name == "Defend") {
             console.log("block skill: " + skill);
             // prevent damage
             console.log(otherCharacter.damage + " -> " + Math.floor(otherCharacter.damage * (1 - skill)));
@@ -157,41 +154,60 @@ class character {
     }
 
     useSpecial(){
-        // possible to have more than one
-        this.special.forEach((special) => {
-            // magic doesn't work against null field
-            if (!nullFieldActive || !special.isMagic) {
-                // otherwise, do the thing
-                switch (special.name) {
-                case "Null Field":
-                    nullFieldActive = true;
-                    return;
-                case "Armor of God":
-                    // only once per turn    
-                    if (!this.attacking()) {
-                        console.log("can't use armor of god while not attacking");
-                        return;
-                    }
-                    var heal = Math.min(7, this.maxHp - this.hp);
-                    console.log("healed " + heal);
-                    this.hp += heal;
-                    if (heal > 0) this.buffText("+" + heal, "green");
-                    return;
-                case "Blood Frenzy":
-                    // only once per turn    
-                    if (!this.attacking()) {
-                        console.log("can't use blood frenzy while not attacking");
-                        return;
-                    }
-                    this.strength += 4;
-                    setTimeout(() => {this.buffText("+4", "blue");}, 1000);
-                    return;
-                case "Defend":
-                    // nothing here, this is activated on counterattack
+        // // possible to have more than one
+        // this.special.forEach((special) => {
+        // use one special only
+        var special = this.activeSpecial;
+        // magic doesn't work against null field
+        if (!nullFieldActive || !special.isMagic) {
+            // otherwise, do the thing
+            switch (special.name) {
+            case "Null Field":
+                nullFieldActive = true;
+                return;
+            case "Armor of God":
+                // only once per turn    
+                if (!this.attacking()) {
+                    console.log("can't use armor of god while not attacking");
                     return;
                 }
+                var heal = Math.min(7, this.maxHp - this.hp);
+                console.log("healed " + heal);
+                this.hp += heal;
+                if (heal > 0) this.buffText("+" + heal, "green");
+                return;
+            case "Blood Frenzy":
+                // only once per turn    
+                if (!this.attacking()) {
+                    console.log("can't use blood frenzy while not attacking");
+                    return;
+                }
+                this.strength += 4;
+                setTimeout(() => {this.buffText("+4 attack", "blue");}, 2000);
+                return;
+            case "Defend":
+                // nothing here, this is activated on counterattack
+                return;
             }
-        });
+        }
+        // });
+    }
+
+    selectSpecial (name) {
+        if (turn != 0) return;
+        // activate the special with the given name
+        if (yourCharacter.activeSpecial.name == "Null Field" && name != "Null Field")
+            nullFieldActive = false;
+        else if (yourCharacter.activeSpecial.name == "Null Field")
+            nullFieldActive = true;
+        yourCharacter.activeSpecial = yourCharacter.special[
+            yourCharacter.special.map((special) => {return special.name;}).indexOf(name)
+        ];
+        // highlight (only) that button
+        $(".specialButton").removeClass("specialSelect");
+        $("#" + name.slice(0, 4)).addClass("specialSelect");
+        // in case this affects the other character
+        refreshStats($("#opponentStats"), opponent, "min");
     }
 
     buffText(text, color) {
@@ -276,3 +292,12 @@ class character {
         return Math.max(0, this.pausedFor + this.pausedAt - now());
     }
 }
+
+// create four characters≈≈
+characters = [
+    new character('berserker', 'images/berserker.png', 75, 4, 5, 6, [{"name": "Blood Frenzy", "description": "Each time this charcter attacks, his strength increases by 4.", "isMagic": true}]),
+    new character('antimage', 'images/antimage.png', 50, 16, 5, 7, [{"name": "Null Field", "description": "Magical abilities don't work when fighting Anitmage.", "isMagic": false}]),
+    new character('shieldbearer', 'images/shieldbearer.png', 100, 9, 0, 5, [{"name": "Defend", "description": "Can deflect damage with a well-timed shield block.", "isMagic": false}]),
+    new character('monk', 'images/monk.png', 60, 0, 10, 4, [{"name": "Armor of God", "description": "Recovers 7 hp every round.", "isMagic": true}])
+];
+

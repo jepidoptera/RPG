@@ -94,6 +94,15 @@ body {
     font-size: 3vh;
 }
 
+.specialButton {
+    border: 0;
+    cursor: pointer;
+}
+
+.specialSelect {
+    border: 1px solid white;
+}
+
 hr {
     width: 100%;
     color: yellow;
