@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>jQueryRotate - rotate image in browser by any angle</title>
+     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="OpenSource Cross-browser jQuery plugin to rotate image by any-angle with an animation support."/>
+    <meta property="og:title" content="jQueryRotate - rotate image in browser by any angle"/>
+    <meta property="og:description" content="OpenSource Cross-browser jQuery plugin to rotate image by any-angle with an animation support."/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/scrolling-nav.css">
+    <style type="text/css">
+      .color1 { color: #DC3522;}
+      .bg-color1 { background-color: #DC3522;}
+      .border-color1 { border-color: #DC3522;}
+      .color2 { color: #D9CB9E;}
+      .bg-color2 { background-color: #D9CB9E;}
+      .color3 { color: #374140;}
+      .bg-color3 { background-color: #374140;}
+      .color4 { color: #2A2C2B;}
+      .bg-color4 { background-color: #2A2C2B;}
+      .color5 { color: #1E1E20;}
+      .bg-color5 { background-color: #1E1E20;}
+
+      .btn-lg {
+         line-height:2.5;
+      }
+
+      .header {
+        padding: 120px 0;
+      }
+      .header h1 {
+        font-size: 120px;
+      }
+      .row {
+        padding-top: 60px;
+      }
+      .footer {
+        padding: 30px;
+        text-align: center;
+      }
+
+    </style>
+  </head>
+  <body class="bg-color5" id="body">
+    <nav class="navbar navbar-fixed-top bg-color2">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                      <li><a class="color1 page-scroll" href="#body">jQueryRotate</a></li>
+                      <li><a class="color4 page-scroll" href="#overview">Overview</a></li>
+                      <li><a class="color4 page-scroll" href="#documentation">Documentation</a></li>
+                      <li><a class="color4 page-scroll" href="#examples">Examples</a></li>
+                      <li><a class="color4 page-scroll" href="#download">Download</a></li>
+                      <li><a class="color4 page-scroll" href="#whosusing">Who's using</a></li>
+                      <li><a class="color4 page-scroll" href="#faq">FAQ</a></li>
+                    </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header bg-color2 color3">
+      <div class="container">
+        <h1> JQueryRotate </h1>
+        <div class="pull-right">
+        <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=YSU4797QV688J" rel="nofollow"><img alt="" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" id="exifviewer-img-1"></a>
+        </div>
+        <h2 class="color4"> OpenSource Cross-browser jQuery plugin to rotate image by any-angle with an animation support. </h2>
+        <span class="color1">
+         All+ <img alt="" src="images/chrome_32x32.png"/>
+         12+<img alt="" src="images/firefox_32x32.png"/>
+         All+<img alt="" src="images/safari_32x32.png"/>
+         6+<img alt="" src="images/internet-explorer_32x32.png"/>
+       </span>
+         <div class="pull-right"> Direct download:
+          <p> <a class="color2 btn-lg btn-success" href="https://raw.githubusercontent.com/wilq32/jqueryrotate/master/jQueryRotate.js">jQueryRotate v.2.3 - Minified - 7.6 kB </a></p>
+        </div>
+        <h4>Project source-code is hosted <a class="color5" href="https://github.com/wilq32/jqueryrotate/">GitHub</a> is and using <a class="color5" href="http://opensource.org/licenses/mit-license.php"> MIT</a> license (free comercial use).</h4>
+      </div>
+    </div>
+
+    <div class="container color2">
+
+      <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+      <!-- Responsive text&display -->
+      <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-6531063547301416"
+          data-ad-slot="3852012126"
+          data-ad-format="auto"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+
+      <h1 class="page-header border-color1" id="overview">Overview</h1>
+      <p> This project allows you to simply rotate image by any degree. It uses CSS3 where applicable and falls back to a CANVAS (old firefox, some less known browsers) or VML (IE6) solution where possible. It also gives some simple interface to animate rotation. Keep in mind that primary usage of this plugin is to only rotate "IMG" elements, however experimental version of plugin (ver.3) also rotates other elements (yet does not support so many older browsers).
+      </p>
+
+      <h1 class="page-header border-color1" id="documentation">Documentation</h1>
+      Currently plugin provides interface of few methods:
+      <ul>
+        <li><a class="color2 page-scroll" href="#rotate"> rotate(angle)</a></li>
+        <li><a class="color2 page-scroll" href="#rotate2"> rotate(parameters)</a></li>
+        <li><a class="color2 page-scroll" href="#getRotate"> getRotateAngle()</a> </li>
+        <li><a class="color2 page-scroll" href="#stopRotate"> stopRotate()</a> </li>
+      </ul>
+
+
+      <div class="row" id="rotate">
+        <div class="col-md-3">
+          <h3>rotate(angle)</h3>
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="doc1"/></p>
+        </div>
+        <div class="col-md-9">
+          <p><strong>angle[Number]</strong> - default 0</p>
+          <p>Simply rotate given image by a given angle, no animation is applied. Using jQuery selector all included images are rotated.</p>
+          <p>Example: </p><pre>$("#img").rotate(45);</pre>
+          Live code example <a class="color3" href="http://jsfiddle.net/RwEme/8596/"> here! </a>
+        </div>
+      </div>
+
+      <div class="row" id="rotate2">
+        <div class="col-md-3">
+          <h3>rotate(parameters)</h3>
+        </div>
+        <div class="col-md-9">
+          <p><strong>parameters [Object] </strong> </p>
+          <p> This method rotate image with set of options included in parameter (including animation). Parameters are as follow:</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+            angle [Number] - default 0
+          <p class="text-center"><img alt="" src="images/safari_64x64.png" id="doc2"/></p>
+        </div>
+        <div class="col-md-9"><p>
+          Angle value in degrees of an rotation to be executed immediately.
+        </p><p>
+          Example:</p>
+          <pre>$("#img").rotate({angle:45});</pre>
+          <p>Live code example <a class="color3" href="http://jsfiddle.net/RwEme/8596/"> here! </a>
+        </p></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          bind [Object]
+          <p class="text-center"><img alt="" src="images/chrome_64x64.png" id="doc3"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Object containing events to bind on to a rotation object. $(this) inside events points to a rotation object - this way you can chain execution of rotations - $(this).rotate(...)
+        </p><p>
+          Example (click on icon on the left):
+        </p><pre>
+$("#img").rotate({bind:{
+  click: function(){
+    $(this).rotate({
+      angle: 0,
+      animateTo:180
+      })
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+           animateTo [Number] - default 0
+        </div>
+        <div class="col-md-9"><p>
+             Angle value in degrees of an rotation to be animated to from current angle value (or given angle parameter)
+        </p><p>
+          Example: See bind example above to see usage.
+        </p></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          center [Array]
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="doc4"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            An array containing two values - [X, Y]. They define a center of a rotation. Numeric and percentage values are possible ([100,100], or ["50%", "50%"]). Please use values between 0>= x &lt;= imageWidth and 0>= y &lt;= imageHeight (percentage between 0-100%) - this is limitation of already huge canvas area (fallback for old firefox and other non-css3 browsers).
+        </p><p>
+          Example (click on icon on the left): </p><pre>
+$("#img").rotate({bind:{
+  click: function(){
+    $(this).rotate({
+      angle: 0,
+      center: ["50%", "100%"],
+      animateTo:180
+      })
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          duration [Number] - default 1000
+          <p class="text-center"><img alt="" src="images/safari_64x64.png" id="doc5"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Specifies a duration of a animation when using animateTo action
+        </p><p>
+          Example (click on icon on the left):</p><pre>
+$("#img").rotate({bind:{
+  click: function(){
+    $(this).rotate({
+      duration:6000,
+      angle: 0,
+      animateTo:100
+      })
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+
+
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          step [Function] - default null
+        </div>
+        <div class="col-md-9"><p>
+            A function that will be executed on every animation step. As a first argument a current angle is given.
+        </p></div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          easing [Function] - default (see below)
+          <p class="text-center"><img alt="" src="images/chrome_64x64.png" id="doc6"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Easing function used to make animation look more natural. It takes five parameters (x,t,b,c,d) to support easing from http://gsgd.co.uk/sandbox/jquery/easing/ (for more details please see documentation at their website). Remember to include easing plugin before using it in jQueryRotate!
+          </p><p>
+            Default function:</p><pre>
+              function (x, t, b, c, d) { return -c * ((t=t/d-1)*t*t*t - 1) + b; }</pre>
+          <p>
+            Where:</p>
+            <dl class="dl-horizontal">
+              <dt>t</dt><dd> current time,</dd>
+              <dt>b</dt><dd> beginning value,</dd>
+              <dt>c</dt><dd> change In value,</dd>
+              <dt>d</dt><dd> duration,</dd>
+              <dt>x</dt><dd> unused</dd>
+            </dl>
+          <p>
+            No easing (linear easing):</p><pre>
+               function(x, t, b, c, d) { return b+(t/d)*c ; }</pre>
+          <p>
+            Example (click on icon on the left):</p><pre>
+$("#img").rotate({bind:{
+  click: function(){
+    $(this).rotate({
+      angle: 0,
+      animateTo:180,
+      easing: $.easing.easeInOutElastic
+      })
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2">
+          callback [Function] - default null
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="doc7"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            A function to be called when animation finishes.
+          </p><p> Example (click on icon on the left): </p><pre>
+$("#img").rotate({bind:{
+  click: function(){
+    $(this).rotate({
+      angle: 0,
+      animateTo:180,
+      callback: function(){   alert(1)  }
+      })
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+
+
+      <div class="row" id="getRotate">
+        <div class="col-md-3">
+          <h3>getRotateAngle()</h3>
+          <p class="text-center"><img alt="" src="images/safari_64x64.png" id="doc8"/></p>
+        </div>
+        <div class="col-md-9">
+          <p>This function simply returns current angle of rotated object.</p>
+          <p>Example (click on icon on the left):</p><pre>
+$("#img").rotate({
+  angle: 45,
+    bind: {
+      click : function(){
+      alert($(this).getRotateAngle());
+    }
+  }
+});</pre>
+        </div>
+      </div>
+
+      <div class="row" id="stopRotate">
+        <div class="col-md-3">
+          <h3>stopRotate()</h3>
+          <p class="text-center"><img alt="" src="images/chrome_64x64.png" id="doc9"/></p>
+        </div>
+        <div class="col-md-9">
+          <p>This function simply stops ongoing rotate animation.</p>
+          <p>Example (click on icon on the left): </p><pre>
+$("#img").rotate({
+  bind: {
+    click: function(){
+      $("#img").rotate({
+        angle: 0,
+        animateTo: 180,
+        duration: 6000
+      });
+      setTimeout(function(){
+        $("#img").stopRotate();
+      }, 1000);
+    }
+  }
+});
+</pre>
+<p>
+            Live code example <a class="color3" href="http://jsfiddle.net/xJnqM/2031/"> here! </a>
+</p>
+
+        </div>
+      </div>
+
+
+      <h1 class="page-header border-color1" id="examples">Examples</h1>
+
+      <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+      <!-- Responsive text&display -->
+      <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-6531063547301416"
+          data-ad-slot="3852012126"
+          data-ad-format="auto"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+
+
+      Below a few examples with links to a jsFiddle version of the code where you can test various examples on your own!
+      <div class="row">
+        <div class="col-md-3">
+          <h2>Example 1</h2>
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="exa1"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Simply rotate an image.
+          </p><pre>$("#img").rotate(45);</pre><p>
+            or
+          </p><pre>$("#img").rotate({angle: 45});</pre><p>
+            Live code example <a class="color3" href="http://jsfiddle.net/RwEme/8596/"> here! </a>
+        </p></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <h2>Example 2</h2> Mouseover icon to see effect.
+          <p class="text-center"><img alt="" src="images/safari_64x64.png" id="exa2"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            This is simple example that rotates image when user mouseover/mouseout object.
+        </p><pre>
+$("#img").rotate({
+  bind:
+  {
+    mouseover : function() {
+    $(this).rotate({animateTo:180})
+  },
+  mouseout : function() {
+    $(this).rotate({animateTo:0})
+    }
+  }
+
+});</pre>
+        <p>
+            Live code example <a class="color3" href="http://jsfiddle.net/2d9r073o/"> here! </a>
+        </p></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <h2>Example 3</h2>
+          <p class="text-center"><img alt="" src="images/chrome_64x64.png" id="exa3"/></p>
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="exa4"/></p>
+          <p class="text-center"><img alt="" src="images/safari_64x64.png" id="exa5"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Rotate image endlessly
+          </p><pre>
+var angle = 0;
+  setInterval(function(){
+    angle+=3;
+  $("#img").rotate(angle);
+  },50);</pre><p>
+            Live code example <a class="color3" href="http://jsfiddle.net/xpdd0vz2/"> here! </a>
+
+        </p><p>
+          Rotate image endlessly using recursive function </p><pre>
+var rotation = function (){
+  $("#img").rotate({
+    angle:0,
+    animateTo:360,
+    callback: rotation
+  });
+}
+rotation();</pre><p>
+            Live code example <a class="color3" href="http://jsfiddle.net/Lck7hkun/"> here! </a>
+        </p><p>
+          Rotate image endlessly using recursive function and custom easing (similar to example with simple endless rotation)
+        </p><pre>
+var rotation = function (){
+  $("#img").rotate({
+    angle:0,
+    animateTo:360,
+    callback: rotation,
+    easing: function (x,t,b,c,d){        // t: current time, b: begInnIng value, c: change In value, d: duration
+      return c*(t/d)+b;
+    }
+  });
+}
+rotation();</pre><p>
+            Live code example <a class="color3" href="http://jsfiddle.net/pvq111u9/"> here! </a>
+        </p></div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-md-3">
+          <h2>Example 4</h2>Click on icon to see effect.
+          <p class="text-center"><img alt="" src="images/chrome_64x64.png" id="exa6"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Animation rotate using easing from <a class="color3" href="http://gsgd.co.uk/sandbox/jquery/easing/">http://gsgd.co.uk/sandbox/jquery/easing/</a>
+            (remember to also include script contains easing)
+          </p><pre>
+$("#img").rotate({
+  bind:
+  {
+    click: function(){
+      $(this).rotate({ angle:0,animateTo:180,easing: $.easing.easeInOutExpo })
+    }
+  }
+
+});</pre>
+            <p>Live code example <a class="color3" href="http://jsfiddle.net/LLfetw40/"> here! </a>
+        </p></div>
+      </div>
+
+
+
+      <div class="row">
+        <div class="col-md-3">
+          <h2>Example 5</h2> Click on icon to see effect.
+          <p class="text-center"><img alt="" src="images/internet-explorer_64x64.png" id="exa7"/></p>
+        </div>
+        <div class="col-md-9"><p>
+            Animation shows how to use variables in JavaScript...
+          </p><pre>
+var value = 0
+$("#img").rotate({
+  bind:
+  {
+    click: function(){
+      value +=90;
+      $(this).rotate({ animateTo:value})
+    }
+  }
+});</pre>
+            <p>Live code example <a class="color3" href="http://jsfiddle.net/8xwqdk71/"> here! </a>
+        </p></div>
+      </div>
+
+
+
+
+
+
+
+      <h1 class="page-header border-color1" id="download">Downloads</h1>
+
+      <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+      <!-- Responsive text&display -->
+      <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-6531063547301416"
+          data-ad-slot="3852012126"
+          data-ad-format="auto"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+
+
+          Please select one of downloads:
+          <p><a class="color5 btn-lg btn-success" href="https://raw.githubusercontent.com/wilq32/jqueryrotate/master/jQueryRotate.js">  jQueryRotate v.2.3 - Minified - 7.6 kB </a></p>
+          <p><a class="color5 btn btn-info" href="https://raw.githubusercontent.com/wilq32/jqueryrotate/master/jQueryRotate.js">jQueryRotate v.2.3 - 13.8 kB</a></p>
+          <p><a class="color5 btn btn-info" href="https://raw.githubusercontent.com/wilq32/jqueryrotate/master/jQueryRotate.js"> experimental jQueryRotate 3.1 - 8.3 kB </a></p>
+
+
+      <h1 class="page-header border-color1" id="whosusing">Who's using</h1>
+      <p>
+      Who uses plugin (Other examples)
+      </p>
+      <ul>
+        <li>AJAX LABS - clock: <a class="color3" href="http://www.ajaxlabs.co.uk/default.php?eid=0006">http://www.ajaxlabs.co.uk/default.php?eid=0006</a></li>
+        <li>minecraft-sundial: <a class="color3" href="https://github.com/sunkid/minecraft-sundial">https://github.com/sunkid/minecraft-sundial</a></li>
+        <li><a class="color3" href="http://www.ijskarverhuur.net/ ">http://www.ijskarverhuur.net/</a>- move your mouse over the bell of the ice cream cart :)</li>
+        <li><a class="color3" href="https://www.groupon.com/clicky">https://www.groupon.com/clicky</a></li>
+        <li><a class="color3" href="http://www.aldiphotogallery.com/en/gallery/">http://www.aldiphotogallery.com/en/gallery/</a></li>
+        <li><a class="color3" href="http://www.eeslp.com/">http://www.eeslp.com/</a></li>
+      </ul>
+
+      <h1 class="page-header border-color1" id="faq">FAQ</h1>
+      <p>
+        <h3>1. I try rotate div element and it works everywhere but not in IE.</h3>
+        <p>This plugin was mainly created to rotate images (img) elements ONLY. However it uses CSS attributes in modern browsers that will also work for div elements. That's why it works in other browsers but not IE. If you really need to rotate div you can take a look at experimental version of jQueryRotate 3. You can find it download section.</p>
+
+        <h3>2. In IE first time image is rotated it blinks for a while.</h3>
+        <p>This is a nasty outcome of a replacing a IMG element with VML:Image on the fly. If this issue is a problem for you, you can try call $(element).rotate(0) as soon as possible. Triggering any .rotate method will do the conversion, so you can prepare image object for later use. Thanks to alisonjo2786 there we got some example cases:</p>
+
+        <p>Where you can see problem: http://jsfiddle.net/CeLNw/23/</p>
+
+        <p>A solution with some more nice features: http://jsfiddle.net/CeLNw/26/</p>
+
+        <p>Also you can take look at http://code.google.com/p/jqueryrotate/wiki/Documentation and check alisonjo2786 comment there.</p>
+
+        <h3>3. This plugin doesn't work.</h3>
+        <p>This plugin is tested in many environments so before saying it doesn't work please first check that:</p>
+
+        <ul>
+          <li>jQuery is included and is included before jQueryRotate,</li>
+          <li>jQueryRotate is included and is included after jQuery,</li>
+          <li>javascript code should be executed after libraries are loaded. It's also safe to do:</li>
+        </ul>
+        <pre>$document.ready(function(){
+           /// Your code here
+           });</pre>
+         <h3>4. My event get lost after calling .rotate</h3>
+         Well unfortunately its true. Removing original element and replacing it with VML or Canvas leads to events being lost. Safest way of binding any events to object that you plan to rotate is:
+
+         <pre>$(element).rotate({
+            bind : {
+                  /// here bind your events
+                     }
+                     });</pre>
+         <h3>... Extras</h3>
+         <p>Rotate within wrapper (idea sent by Dan Helyar)</p>
+         When you're forced to rotate within wrapper and found out that its quite tricky problem, you can take look at Dan Helyar findings (only example code left):
+         <a class="color3" href="http://jsfiddle.net/xcnas330/">http://jsfiddle.net/xcnas330/</a>
+
+
+
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- Responsive text&display -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-6531063547301416"
+        data-ad-slot="3852012126"
+        data-ad-format="auto"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+    </div>
+
+    <div class="footer color2">
+      By Pawel "wilq32" Witkowski. All rights reserved.
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="js/jQueryRotateCompressed.js"></script>
+    <script src="js/jquery.easing.min.js"></script>
+    <script src="js/scrolling-nav.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){
+
+     var rotation = function (){
+      $(this).rotate({
+        angle:0,
+        animateTo:360,
+        duration: 2000,
+        callback: rotation,
+        easing: function (x,t,b,c,d){        // t: current time, b: begInnIng value, c: change In value, d: duration
+          return c*(t/d)+b;
+        }
+      });
+    }
+    $(".header img").each(rotation);
+
+    $("#doc1, #doc2, #exa1").rotate(45);
+
+    $("#doc3").rotate({bind:{
+          click: function(){
+            $(this).rotate({
+                angle: 0,
+                animateTo:180
+            })
+          }
+    }});
+
+    $("#doc4").rotate({bind:{
+          click: function(){
+            $(this).rotate({
+                angle: 0,
+                center: ["50%", "100%"],
+                animateTo:180
+            })
+          }
+    }});
+
+    $("#doc5").rotate({bind:{
+          click: function(){
+            $(this).rotate({
+                duration:6000,
+                angle: 0,
+                animateTo:100
+            })
+          }
+    }
+    });
+
+    $("#doc6").rotate({bind:{
+          click: function(){
+            $(this).rotate({
+                angle: 0,
+                animateTo:180,
+                easing: $.easing.easeInOutElastic
+            })
+          }
+    }
+    });
+
+    $("#doc7").rotate({bind:{
+          click: function(){
+            $(this).rotate({
+                angle: 0,
+                animateTo:180,
+                callback: function(){   alert(1)  }
+            })
+          }
+    }
+    });
+    $("#doc8").rotate({
+        angle: 45,
+        bind: {
+          click : function(){
+            alert($(this).getRotateAngle());
+          }
+        }
+    });
+
+    $("#doc9").rotate({
+        bind: {
+          click: function(){
+            $("#doc9").rotate({
+                angle: 0,
+                animateTo: 180,
+                duration: 6000
+            });
+            setTimeout(function(){
+              $("#doc9").stopRotate();
+            }, 1000);
+          }
+        }
+    });
+
+    $("#exa2").rotate({
+        bind:
+        {
+          mouseover : function() {
+            $(this).rotate({animateTo:180})
+          },
+          mouseout : function() {
+            $(this).rotate({animateTo:0})
+          }
+        }
+
+    });
+
+
+    var angle = 0;
+    setInterval(function(){
+          angle+=3;
+            $("#exa3").rotate(angle);
+    },50);
+
+    var rot = function (){
+      $("#exa4").rotate({
+          angle:0,
+          animateTo:360,
+          callback: rot
+      });
+    }
+    rot();
+
+    var rot2 = function (){
+      $("#exa5").rotate({
+          angle:0,
+          animateTo:360,
+          callback: rot2,
+          easing: function (x,t,b,c,d){        // t: current time, b: begInnIng value, c: change In value, d: duration
+            return c*(t/d)+b;
+          }
+      });
+    }
+    rot2();
+
+    $("#exa6").rotate({
+        bind:
+        {
+          click: function(){
+            $(this).rotate({ angle:0,animateTo:180,easing: $.easing.easeInOutExpo })
+          }
+        }
+
+    });
+
+    var value = 0
+    $("#exa7").rotate({
+        bind:
+        {
+          click: function(){
+            value +=90;
+            $(this).rotate({ animateTo:value})
+          }
+        }
+    });
+
+    });
+    </script>
+  </body>
+</html>

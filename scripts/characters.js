@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 // character 0 : berserker: attack power increases each time. beats monk.
 // character 1 : antimage : nullifies other characters' powers. beats berserker.
 // character 2 : shieldbearer : shield
@@ -36,19 +38,25 @@ class character {
     }
 
     attack(otherCharacter) {
+        // don't do this if dead
+        if (this.dead) return;
         // delay possibility of next attack
         if (this.attacking()) return;
         this.nextAttack = now() + this.speed * 2;
         // animate? yes
         if (this.strength > 0) {
             this.move(otherCharacter.x + 0.1 * Math.sign(this.x - otherCharacter.x), this.y, this.speed);
-            setTimeout(() => {this.hit(otherCharacter)}, this.speed);
+            setTimeout(() => {this.hit(otherCharacter);}, this.speed);
         }
         // console.log(otherCharacter.x + 0.1 * Math.sign(this.x - otherCharacter.x));
         // half a second     
         // move back afterward and use special
         var x = this.x; var y = this.y;
-        setTimeout(() => {this.move(x, y, this.speed); this.useSpecial()}, this.speed);
+        setTimeout(() => {
+            this.move(x, y, this.speed); 
+            // activate special
+            this.useSpecial();
+        }, this.speed);
     }
 
     attacking() {
@@ -60,19 +68,18 @@ class character {
     hit(otherCharacter) {
         // the better your timing, the more damage you do
         var skill = 1 - Math.abs(this.y - otherCharacter.y) * 2;
+        console.log("attack skill: " + skill);
         this.damage = Math.ceil(this.strength * skill);
         // computer controlled player will automatically counterattack
         if(otherCharacter.ai) setTimeout(() => {
             otherCharacter.counterAttack(this);
-        }, otherCharacter.speed);
-        // other character's special activates
-        otherCharacter.special;
+        }, Math.random() * (this.speed / difficulty));
         // freeze to show damage
         this.pause(this.damage * 75);
         // turn defender's border briefly red
         otherCharacter.img.css({"border": "4px solid red"});
         setTimeout(() => {
-            otherCharacter.img.css({"border": "2px solid black"});
+            otherCharacter.img.css({"border": "1px solid black"});
         }, 100);
         // otherCharacter.pause(this.damage * 75);
         // pause, then show damage (give other character a chance to defend)
@@ -82,14 +89,41 @@ class character {
     }
 
     counterAttack(otherCharacter) {
-        // shieldbearer blocks instead of counterattack
-        if (this.special.name == "Defend") {
-            this.block(otherCharacter);
-            return;
+        var timeRemaining = otherCharacter.attacking();
+        var skill = Math.max(0, timeRemaining / otherCharacter.speed);
+
+        // don't do this if you're dead
+        if (this.dead) return;
+
+        // let the human character know how they did
+        if (!this.ai) {
+            if (skill < 0.5){
+                this.buffText("weak!", "white");
+            }
+            else if (skill < 0.8){
+                this.buffText("slightly late!", "white");
+            }
+            else if (skill < 0.95){
+                // good, but not quite perfect
+                this.buffText("excellent!", "white");
+            }
+            else {
+                skill = 1;
+                this.buffText("perfect!", "white");
+            }
         }
-        // caculate skill (timing)
-        var skill = Math.max(0, otherCharacter.speed / 
-            (otherCharacter.attacking() + (otherCharacter.attacking() - otherCharacter.speed) * difficulty));
+
+        // shieldbearer blocks instead of counterattack
+        if (this.special.map((special) => {return special.name;}).indexOf("Defend") >= 0) {
+            console.log("block skill: " + skill);
+            // prevent damage
+            console.log(otherCharacter.damage + " -> " + Math.floor(otherCharacter.damage * (1 - skill)));
+            otherCharacter.damage = Math.floor(otherCharacter.damage * (1 - skill));
+            // defensive border
+            this.img.css({"border": skill * skill * 20 + "px solid white"});
+            this.img.delay(500).css({"border": "1px solid black"});
+        }
+        // normal counterattack
         console.log("counter skill: " + skill);
         // adjust damage
         this.damage = Math.ceil(this.counter * skill);
@@ -104,73 +138,65 @@ class character {
         }, this.speed / 2);
     }
 
-    block(otherCharacter) {
-        var timeRemaining = otherCharacter.attacking();
-        var skill = Math.max(0, timeRemaining / otherCharacter.speed);
-        console.log("block skill: " + skill);
-
-        otherCharacter.damage = Math.floor(otherCharacter.damage * (1 - skill));
-        this.img.animate({"border": skill * skill * 20 + "px solid white"});
-
-        // let them know how they did
-        if (skill < 0.5){
-            this.buffText("weak!", "white");
-        }
-        else if (skill < 0.75){
-            this.buffText("slightly late!", "white");
-        }
-        else if (otherCharacter.damage > 0){
-            // good, but not quite perfect
-            this.buffText("excellent!", "white");
-        }
-        else {
-            console.log("perfect: " + otherCharacter.damage)
-            this.buffText("perfect!", "white");
-        }
-        // prevent damage
-    }
-
     hurt(otherCharacter) {
-        otherCharacter.buffText("-" + this.damage, "red");
         otherCharacter.hp -= this.damage;
+        otherCharacter.buffText("-" + this.damage, "red");
         if (otherCharacter.hp <= 0) {
             otherCharacter.die();
         }
     }
 
     die() {
-
+        this.dead = true;
+        this.damage = 0;
+        this.img
+            .stop(true, false)
+            .rotate({angle: 0, center: ["50%", "50%"], animateTo: 360});
+        this.img.animate({"top": "150%"}, {"duration": 1000});
     }
 
     useSpecial(){
-        // null field cancels magical effects
-        if (nullFieldActive && this.special.isMagic) return;
-        // otherwise, do the thing
-        switch (this.special.name) {
-        case "Null Field":
-            nullFieldActive = true;
-            break;
-        case "Armor of God":
-            // only once per turn    
-            if (!this.attacking()) return;
-            if (this.hp < this.maxHp) this.buffText("+" + Math.min(7, this.maxHp - this.hp), "green");
-            this.hp = Math.min(this.maxHp, this.hp + 7);
-            break;
-        case "Blood Frenzy":
-            // only once per turn    
-            if (!this.attacking()) return;
-            this.strength += 4;
-            setTimeout(() => {this.buffText("+4", "blue");}, this.speed);
-            break;
-        case "Defend":
-            break;
-        }
+        // possible to have more than one
+        this.special.forEach((special) => {
+            // magic doesn't work against null field
+            if (!nullFieldActive || !special.isMagic) {
+                // otherwise, do the thing
+                switch (special.name) {
+                case "Null Field":
+                    nullFieldActive = true;
+                    return;
+                case "Armor of God":
+                    // only once per turn    
+                    if (!this.attacking()) {
+                        console.log("can't use armor of god while not attacking");
+                        return;
+                    }
+                    var heal = Math.min(7, this.maxHp - this.hp);
+                    console.log("healed " + heal);
+                    this.hp += heal;
+                    if (heal > 0) this.buffText("+" + heal, "green");
+                    return;
+                case "Blood Frenzy":
+                    // only once per turn    
+                    if (!this.attacking()) {
+                        console.log("can't use blood frenzy while not attacking");
+                        return;
+                    }
+                    this.strength += 4;
+                    setTimeout(() => {this.buffText("+4", "blue");}, 1000);
+                    return;
+                case "Defend":
+                    // nothing here, this is activated on counterattack
+                    return;
+                }
+            }
+        });
     }
 
     buffText(text, color) {
         if (color == undefined) color = "red";
         $(this.img).append(
-            $("<div class=hpPopup></div>")
+            $("<div class=popUp></div>")
             .text(text)
             .animate({"top": "-50%"}, 
                 {"duration": 750, 
@@ -179,6 +205,7 @@ class character {
             .css({"color": color})
             .fadeOut(750)
         );        
+        refreshStats();
     }
 
     position(x, y) {
@@ -198,8 +225,12 @@ class character {
         var paused = this.pauseRemaining();
         var destX = x * 100 + "%";
         var destY = y * 100 + "%";
+        if (this.dead) {
+            // can't move when dead
+            return;
+        }
         // come back when the pause is over
-        if (paused > 0) {
+        else if (paused > 0) {
             setTimeout(() => {
                 this.move(x, y, interval);
             }, paused + 1);
