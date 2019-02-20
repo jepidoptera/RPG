@@ -75,7 +75,7 @@ class character {
             otherCharacter.counterAttack(this);
         }, Math.random() * (this.speed / difficulty));
         // freeze to show damage
-        this.pause(this.damage * 75);
+        this.pause(Math.min(1000, this.damage * 75));
         // turn defender's border briefly red
         otherCharacter.img.css({"border": "4px solid red"});
         setTimeout(() => {
@@ -85,7 +85,7 @@ class character {
         // pause, then show damage (give other character a chance to defend)
         setTimeout(() => {
             this.hurt(otherCharacter);
-        }, this.damage * 75);
+        }, Math.min(1000, this.damage * 75));
     }
 
     counterAttack(otherCharacter) {
@@ -127,6 +127,7 @@ class character {
         console.log("counter skill: " + skill);
         // adjust damage
         this.damage = Math.ceil(this.counter * skill);
+        console.log("damage: " + this.damage)
         // set up animations
         var x = this.x; var y = this.y;
         this.move(x + (0.1 * Math.sign(x - 0.5)), otherCharacter.y, this.speed / 4);
@@ -205,7 +206,7 @@ class character {
             .css({"color": color})
             .fadeOut(750)
         );        
-        refreshStats();
+        refreshAllStats();
     }
 
     position(x, y) {

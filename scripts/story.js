@@ -26,9 +26,9 @@ $(document).ready(function() {
     // add it to the page
     $('body').append($(img));
 
-    // create four characters
+    // create four characters≈≈
     characters = [
-        new character('berserker', 'images/berserker.png', 75, 4, 5, 6, [{"name": "Blood Frenzy", "description": "Each time this charcter attacks, his strength increases by 4.", "isMagic": true}]),
+        new character('berserker', 'images/berserker.png', 75, 40, 5, 6, [{"name": "Blood Frenzy", "description": "Each time this charcter attacks, his strength increases by 4.", "isMagic": true}]),
         new character('antimage', 'images/antimage.png', 50, 16, 5, 7, [{"name": "Null Field", "description": "Magical abilities don't work when fighting Anitmage.", "isMagic": false}]),
         new character('shieldbearer', 'images/shieldbearer.png', 100, 9, 0, 5, [{"name": "Defend", "description": "Can deflect damage with a well-timed shield block.", "isMagic": false}]),
         new character('monk', 'images/monk.png', 60, 0, 10, 4, [{"name": "Armor of God", "description": "Recovers 7 hp every round.", "isMagic": true}])
@@ -95,7 +95,7 @@ function continueStory(){
             $(element.img)
             .addClass("highlight")
             .mouseover( () => {
-                refresh($("#statsWindow"), element);
+                refreshStats($("#statsWindow"), element);
             })
             .mouseleave(function() {
                 $("#statsWindow").hide();
@@ -205,7 +205,7 @@ function chooseOpponent() {
             setOpponent(element);
             opponentsRemaing -= 1;
             // deactivate mouse functions
-            $(".characterImg").unbind("mouseover mouseleave click");
+            $(".characterImg").off("mouseover mouseleave click");
             // reset remaining characters
             setupBackBench();
             // continue the story
@@ -213,7 +213,7 @@ function chooseOpponent() {
         })
         .addClass("highlight")
         .mouseover( () => {
-            refresh($("#statsWindow"), element);
+            refreshStats($("#statsWindow"), element);
         })
         .mouseleave(function() {
             $("#statsWindow").hide();
@@ -247,8 +247,8 @@ function fight(){
     // show stats for both characters
     $("#statsWindow").show().css({"top": "50%", "left": "20%", "display": "block", "transform": "translate(-50%, -50%)", "position": "absolute", "z-index": "9"});
     $("#opponentStats").show().css({"top": "50%", "left": "80%", "display": "block", "transform": "translate(-50%, -50%)", "position": "absolute", "z-index": "9"});
-    refresh($("#statsWindow"), yourCharacter, "min");
-    refresh($("#opponentStats"), opponent, "min");
+    refreshStats($("#statsWindow"), yourCharacter, "min");
+    refreshStats($("#opponentStats"), opponent, "min");
     // clear highlighting
     $(".characterImg").removeClass("highlight");
     // fighting time
@@ -272,7 +272,7 @@ function fight(){
                 opponent.move(0.666, 0.25, opponent.speed * 2 / difficulty);
             }
         }
-        // check if dead
+        // check if dead (either you or opponent)
         if (yourCharacter.dead) {
             clearInterval(gameloop);
             lose();
@@ -280,17 +280,15 @@ function fight(){
         else if (opponent.dead) {
             // stop game loop
             clearInterval(gameloop);
-            // take their abilities
-            winBattle();
-            // move along
-            setTimeout(() => {
-                continueStory();
-            }, 2400);
+            // victory
+            win();
         }   
     }, opponent.speed * 2 / difficulty);
-
     // prepare to strike
-    $(document).on("keydown", function(event){
+    // use addeventListener instead of .on because it doesn't cause weird bug!
+    document.addEventListener("keydown", attackKeys);
+
+    function attackKeys (event) {
         // attack
         if (event.key == " ") {
             if (turn == 0) {
@@ -298,6 +296,7 @@ function fight(){
                 yourCharacter.attack(opponent);
                 turn = 1;
                 compAttack();
+                console.log("comp attacking");
                 // allow (one) block attempt
                 blocked = false;
             } 
@@ -311,6 +310,7 @@ function fight(){
                     yourCharacter.buffText("Too Early!", "white");
                     return;
                 }
+                console.log("counterattacking...");
                 yourCharacter.counterAttack(opponent);
                 // return to center
                 setTimeout(() => {
@@ -318,26 +318,39 @@ function fight(){
                 }, 800);
             }
         }
+        else if (event.key == "+") {
+            yourCharacter.strength += 6;
+            refreshAllStats();
+        }
+        else if (event.key == "-") {
+            yourCharacter.strength -= 6;
+            refreshAllStats();
+        }
         else if (event.keyCode == 38) {
             if (yourCharacter.y > 0.25) {
                 
             }
         }
         else if (event.keyCode == 40) {
-
+    
         }
-    });
-
+    }
+    
     function compAttack() {
         // wait, then return attack
         var delay = yourCharacter.speed * 5 + opponent.speed * (3 + Math.random());
         setTimeout(() => {
             if (!opponent.dead){
-                $("#banner").show().text("Prepare to defend!");
-                $("#subtext").show().text("Tap space at the moment of impact for maximum " + 
-                    ((yourCharacter.name == "shieldbearer") 
-                    ? " blocking power." 
-                    : " counter-attack damage."));
+                if (opponent.strength > 0){
+                    $("#banner").show().text("Prepare to defend!");
+                    $("#subtext").show().text("Tap space at the moment of impact for maximum " + 
+                        ((yourCharacter.name == "shieldbearer") 
+                        ? " blocking power." 
+                        : " counter-attack damage."));
+                }
+                else {
+                    $("#banner").show().text("Wait for it...");
+                }
             }
         }, delay - 2000);            
         setTimeout(() => {
@@ -351,6 +364,28 @@ function fight(){
             turn = 0;
         }, delay + opponent.speed * 2 + 1000);
     }
+    
+    function win() {
+        // cancel keydown
+        document.removeEventListener("keydown", attackKeys);            
+        // gain your opponents' abilities
+        yourCharacter.special = yourCharacter.special.concat(opponent.special);
+        // move along
+        setTimeout(() => {
+            continueStory();
+        }, 2400);
+    }
+
+    function lose() {
+        msgBox("Tragedy", "You have died.  Your bones will line the cauldron for one of " + sorcerorKing.name + "'s evil spells.  Don't feel bad - your failure was expected and will not be remembered.",
+        new dialogButtons([{
+            text: "awww",
+            function: () => {
+                // fade to black
+                $("body").children().fadeOut("slow");
+            }
+        }]));
+    }    
 }
 
 function randomName(length) {
@@ -368,12 +403,12 @@ function randomName(length) {
     return word[0].toUpperCase() + word.slice(1);
 }
 
-function refreshStats() {
-    refresh ($("#statsWindow"), yourCharacter, "min");
-    refresh ($("#opponentStats"), opponent, "min");    
+function refreshAllStats() {
+    refreshStats ($("#statsWindow"), yourCharacter, "min");
+    refreshStats ($("#opponentStats"), opponent, "min");    
 }
 
-function refresh ($div, character, style) {
+function refreshStats ($div, character, style) {
     if (style == "min") {
         $div
         .css ({"width": "150px"})
@@ -382,10 +417,27 @@ function refresh ($div, character, style) {
             "ATTACK: " + character.strength + "<br><br>" +
             "COUNTER-ATTACK: " + character.counter + "<br><br>" +
             // show all specials (collect them all!)
-            character.special.map((special) => {return special.name + ((special.isMagic)
-                ? (!nullFieldActive ? " (magic)" : "<div style =\"color: red\">(nullified!)</div>")
-                : "");}).join("<br><br>"))
+            character.special.map((special) => { 
+                return '<input type = "radio" \
+                name = "specials" \
+                id = "' + special.name + '" \
+                value = "small" \
+                checked = "checked" />';}))
+               // return special.name + ((special.isMagic)
+                // ? (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')
+                // : "");}).join("<br><br>"))
         .show();
+        //   <label for = "sizeSmall">small</label>
+        //   <input type = "radio"
+        //          name = "radSize"
+        //          id = "sizeMed"
+        //          value = "medium" />
+        //   <label for = "sizeMed">medium</label>
+        //   <input type = "radio"
+        //          name = "radSize"
+        //          id = "sizeLarge"
+        //          value = "large" />
+        
     }
     else {
         $div
@@ -405,20 +457,3 @@ function refresh ($div, character, style) {
         }
 }
 
-function winBattle() {
-    // gain your opponents' abilities
-    yourCharacter.special = yourCharacter.special.concat(opponent.special);
-    // deactivate key function
-    $('document').off("keydown");
-}
-
-function lose() {
-    msgBox("Tragedy", "You have died.  Your bones will line the cauldron for one of " + sorcerorKing.name + "'s evil spells.  Don't feel bad - your failure was expected and will not be remembered.",
-    new dialogButtons([{
-        text: "awww",
-        function: () => {
-            // fade to black
-            $("body").children().fadeOut("slow");
-        }
-    }]));
-}
