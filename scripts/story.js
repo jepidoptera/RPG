@@ -79,10 +79,10 @@ function continueStory(){
     case 1:
     // choosing character screen    
         // move them to the four corners
-        characters[0].position(0.05, 0.05);
-        characters[1].position(0.05, 0.95);
-        characters[2].position(0.95, 0.05);
-        characters[3].position(0.95, 0.95);
+        characters[0].manifest(0.05, 0.05);
+        characters[1].manifest(0.05, 0.95);
+        characters[2].manifest(0.95, 0.05);
+        characters[3].manifest(0.95, 0.95);
         // show character info on hover
         characters.forEach(element => {
             $(element.img)
