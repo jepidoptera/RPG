@@ -16,22 +16,35 @@ class character {
         //     "position": "absolute",
         //     "width": "10%"})
         .addClass('characterImg');
-        this.maxHp = maxHp;
-        this.hp = this.maxHp;
-        this.strength = strength;
-        this.counter = counter;
+        // base stats
+        this.baseMaxHp = maxHp;
+        this.baseHp = maxHp;
+        this.baseStrength = strength;
+        this.baseCounter = counter;
         // for stats window
         this.quickness = speed;
         // for actual delay between actions
-        this.speed = parseInt(2400 / speed);
+        this.baseSpeed = parseInt(2400 / speed);
+        // modifiers
+        this.hpMod = 0;
+        this.strengthMod = 0;
+        this.counterMod = 0;
+        this.speedMod = 1;
         this.special = special;
         this.activeSpecial = special[0];
         this.x = 0;
         this.y = 0;
         this.dead = false;
+        this.active = false;
         this.ai = true;
         this.paused = false;
     }
+
+    get maxHp() {return this.baseMaxHp + this.hpMod;}
+    get hp() {return this.baseHp + this.hpMod;}
+    get strength() {return this.baseStrength + this.strengthMod;}
+    get counter() {return this.baseCounter + this.counterMod;}
+    get speed() {return this.baseSpeed / this.speedMod;}
 
     attack(otherCharacter) {
         // don't do this if dead
@@ -124,7 +137,7 @@ class character {
         console.log("counter skill: " + skill);
         // adjust damage
         this.damage = Math.ceil(this.counter * skill);
-        console.log("damage: " + this.damage)
+        console.log("damage: " + this.damage);
         // set up animations
         var x = this.x; var y = this.y;
         this.move(x + (0.1 * Math.sign(x - 0.5)), otherCharacter.y, this.speed / 4);
@@ -137,9 +150,9 @@ class character {
     }
 
     hurt(otherCharacter) {
-        otherCharacter.hp -= this.damage;
+        otherCharacter.baseHp -= this.damage;
         otherCharacter.buffText("-" + this.damage, "red");
-        if (otherCharacter.hp <= 0) {
+        if (otherCharacter.hp + otherCharacter.hpMod <= 0) {
             otherCharacter.die();
         }
     }
@@ -147,67 +160,82 @@ class character {
     die() {
         this.dead = true;
         this.damage = 0;
+        // spin and drop off the screen
         this.img
             .stop(true, false)
-            .rotate({angle: 0, center: ["50%", "50%"], animateTo: 360});
-        this.img.animate({"top": "150%"}, {"duration": 1000});
+            .animate({"top": "150%"}, {"duration": 1000});
+        this.spin(360, 1000);
     }
 
     useSpecial(){
-        // // possible to have more than one
-        // this.special.forEach((special) => {
-        // use one special only
-        var special = this.activeSpecial;
-        // magic doesn't work against null field
-        if (!nullFieldActive || !special.isMagic) {
-            // otherwise, do the thing
-            switch (special.name) {
-            case "Null Field":
-                nullFieldActive = true;
-                return;
-            case "Armor of God":
-                // only once per turn    
-                if (!this.attacking()) {
-                    console.log("can't use armor of god while not attacking");
-                    return;
-                }
+        // check null field first, because it affects everything else
+        checkNullField();
+        // clear stat mods
+        this.strengthMod = 0;
+        this.hpMod = 0;
+        this.counterMod = 0;
+        this.speedMod = 1;
+        // apply effects
+        if (!nullFieldActive || !this.activeSpecial.isMagic) {
+            // if it hasn't been nullified, do the thing
+            switch (this.activeSpecial) {
+            case armorOfGod:
+                // can't heal and attack both
+                this.strengthMod = -this.baseStrength;
+                // only activates once per turn    
+                if (!this.attacking()) return;
                 var heal = Math.min(7, this.maxHp - this.hp);
                 console.log("healed " + heal);
-                this.hp += heal;
+                this.baseHp += heal;
                 if (heal > 0) this.buffText("+" + heal, "green");
                 return;
-            case "Blood Frenzy":
-                // only once per turn    
-                if (!this.attacking()) {
-                    console.log("can't use blood frenzy while not attacking");
-                    return;
-                }
-                this.strength += 4;
+            case bloodFrenzy:
+                // only activates once per turn    
+                if (!this.attacking()) return;
+                this.baseStrength += 4;
                 setTimeout(() => {this.buffText("+4 attack", "blue");}, 2000);
                 return;
-            case "Defend":
+            case defend:
                 // nothing here, this is activated on counterattack
                 return;
+            case armorOfSatan:
+                this.counterMod = 99; break;
+            case deathstrike:
+                this.strengthMod = 99; break;
+            case whirlwind:
+                this.speedMod = 2; break;
+            case lastGasp:
+                this.hpMod = 100; break;
+
             }
         }
         // });
     }
 
-    selectSpecial (name) {
-        if (turn != 0) return;
-        // activate the special with the given name
-        if (yourCharacter.activeSpecial.name == "Null Field" && name != "Null Field")
-            nullFieldActive = false;
-        else if (yourCharacter.activeSpecial.name == "Null Field")
-            nullFieldActive = true;
-        yourCharacter.activeSpecial = yourCharacter.special[
-            yourCharacter.special.map((special) => {return special.name;}).indexOf(name)
+    selectSpecial (specialId) {
+        // activate the special with the given name (if a string was passed)
+        if (typeof(specialId) == "string")
+            yourCharacter.activeSpecial = yourCharacter.special[
+            yourCharacter.special.map((special) => {return special.id;}).indexOf(specialId)
         ];
+        else // the other option is just to pass a reference to the special itself
+            yourCharacter.activeSpecial = specialId;
+
+        // refresh opponent stats (in case they were affected)
+        refreshStats($("#opponentStats"), opponent, "min");
         // highlight (only) that button
         $(".specialButton").removeClass("specialSelect");
-        $("#" + name.slice(0, 4)).addClass("specialSelect");
-        // in case this affects the other character
-        refreshStats($("#opponentStats"), opponent, "min");
+        $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
+        // and refresh your stats (close choices)
+        setTimeout(() => {
+            refreshStats($("#statsWindow"), yourCharacter, "min-closed");
+            if (yourCharacter.activeSpecial.name == "Armor of God") {
+                bannerMessage("Press spacebar to heal!");
+            }
+            else {
+                bannerMessage("Press spacebar to attack!", "Time your attack for maximum damage.");    
+            }
+        }, 500);
     }
 
     buffText(text, color) {
@@ -225,7 +253,7 @@ class character {
         refreshAllStats();
     }
 
-    position(x, y) {
+    manifest(x, y) {
         this.x = x;
         this.y = y;
         this.img.css({
@@ -275,6 +303,16 @@ class character {
         );
     }
 
+    spin(angle, duration) {
+        // border won't rotate properly, so hide it
+        var border = this.img.css('border');
+        this.img.css({'border': 0});
+        this.img.children().rotate({angle: 0, center: ["50%", "50%"], animateTo: angle, "duration": duration});
+        setTimeout(() => {
+            this.img.css({'border': border});
+        }, duration);
+    }
+
     pause(miliseconds){
         this.img.pause();
         // this.nextAttack += miliseconds;
@@ -293,11 +331,78 @@ class character {
     }
 }
 
+var armorOfGod = {
+    name: "Armor of God", 
+    description: "Recovers 7 hp every round.", 
+    isMagic: true,
+    id: "armorofgod"
+};
+
+var bloodFrenzy = {
+    name: "Blood Frenzy", 
+    description: "Each time this charcter attacks, his strength increases by 4.", 
+    isMagic: true,
+    id: "bloodfrenzy"
+};
+
+var nullField = {
+    name: "Null Field", 
+    description: "Magical abilities don't work when fighting Anitmage.", 
+    isMagic: false,
+    id: "nullfield"
+};
+
+var defend = {
+    name: "Defend", 
+    description: "Can deflect damage with a well-timed shield block.", 
+    isMagic: false,
+    id: "defend"
+};
+
+var armorOfSatan = {
+    name: "Armor of Satan (+99 counterattack)", 
+    description: "+99 counterattack.", 
+    isMagic: true,
+    id: "armorofsatan"
+};
+
+var deathstrike = {
+    name: "Death Strike (+99 attack)", 
+    description: "+99 attack.", 
+    isMagic: true,
+    id: "deathstrike"
+};
+
+var whirlwind = {
+    name: "Whirlwind (Double Speed)", 
+    description: "Double speed.", 
+    isMagic: true,
+    id: "whirlwind"
+};
+
+var lastGasp = {
+    name: "Last Gasp", 
+    description: "+100 hp.", 
+    isMagic: false,
+    id: "lastgasp"
+};
+
 // create four characters≈≈
 characters = [
-    new character('berserker', 'images/berserker.png', 75, 4, 5, 6, [{"name": "Blood Frenzy", "description": "Each time this charcter attacks, his strength increases by 4.", "isMagic": true}]),
-    new character('antimage', 'images/antimage.png', 50, 16, 5, 7, [{"name": "Null Field", "description": "Magical abilities don't work when fighting Anitmage.", "isMagic": false}]),
-    new character('shieldbearer', 'images/shieldbearer.png', 100, 9, 0, 5, [{"name": "Defend", "description": "Can deflect damage with a well-timed shield block.", "isMagic": false}]),
-    new character('monk', 'images/monk.png', 60, 0, 10, 4, [{"name": "Armor of God", "description": "Recovers 7 hp every round.", "isMagic": true}])
+    new character('berserker', 'images/berserker.png', 75, 4, 5, 6, [bloodFrenzy]),
+    new character('antimage', 'images/antimage.png', 50, 16, 5, 7, [nullField]),
+    new character('shieldbearer', 'images/shieldbearer.png', 100, 9, 0, 5, [defend]),
+    new character('monk', 'images/monk.png', 60, 0, 10, 4, [armorOfGod])
 ];
 
+function checkNullField() {
+    // does anyone, anywhere, have a null field on?
+    nullFieldActive = false;
+    characters.forEach((character) => {
+        if (!character.dead && character.active) {
+            if (character.activeSpecial == nullField) {
+                nullFieldActive = true;
+            }
+        }
+    });
+}

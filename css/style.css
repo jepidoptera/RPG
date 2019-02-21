@@ -97,10 +97,11 @@ body {
 .specialButton {
     border: 0;
     cursor: pointer;
+    border: 1px dashed white;
 }
 
 .specialSelect {
-    border: 1px solid white;
+    border: 2px solid white;
 }
 
 hr {

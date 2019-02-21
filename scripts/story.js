@@ -28,21 +28,22 @@ $(document).ready(function() {
 
     // create the king
     var kingName =  randomName(9 + Math.round(Math.random())); // "Babadoligo";
-    sorcerorKing = new character(kingName, 'images/death.jpg', 600, 10, 10, 4, {"name": "Armor of God (magic)", "description": "Recovers 7 hp every round."})
+    sorcerorKing = new character(kingName, 'images/goatman.jpg', 600, 10, 10, 8, 
+    [deathstrike, whirlwind, armorOfSatan, lastGasp]);
 
-    // // debug, go straight to the fight
+    // // debug, go straight to the bossfight
     // yourCharacter = characters[0];
     // // opponent = characters[2];
 
-    // characters[0].position(0.25, 0.25);
-    // characters[1].position(0.25, 0.75);
-    // characters[2].position(0.75, 0.25);
-    // characters[3].position(0.75, 0.75);
+    // characters[0].manifest(0.25, 0.25);
+    // characters[1].manifest(0.25, 0.75);
+    // characters[2].manifest(0.75, 0.25);
+    // characters[3].manifest(0.75, 0.75);
 
     // yourCharacter.move(0.333, 0.5);
     // // opponent.move(0.666, 0.5);
 
-    // storyLine = 1;
+    // storyLine = 8;
     // continueStory();
     // return;
 
@@ -87,7 +88,7 @@ function continueStory(){
             $(element.img)
             .addClass("highlight")
             .mouseover( () => {
-                refreshStats($("#statsWindow"), element);
+                refreshStats($("#statsWindow"), element, "full");
             })
             .mouseleave(function() {
                 $("#statsWindow").hide();
@@ -169,15 +170,29 @@ function continueStory(){
         break;
 
     case 9:
+        // characters.forEach(element => {
+        //     if (element != yourCharacter) {
+        //         element.move( -1, -1);
+        //     }
+        // });
         // boss fight
+        setTimeout(() => {
+            yourCharacter.special = [bloodFrenzy, armorOfGod, nullField, defend];
+            characters.push(sorcerorKing);
+            opponent = sorcerorKing;
+            sorcerorKing.manifest(0.666, 0);
+            sorcerorKing.move(0.666, 0.5, 5000);
+            sorcerorKing.spin(-1800, 5000);
+            refreshAllStats();
+            fight();
+            }, 3000);
         break;
     }
-
 }
 
 function chooseOpponent() {
     setupBackBench();
-    $("#banner").show().text("Choose your opponent:");
+    bannerMessage("Choose your opponent:");
     // move stats window over a little and hide by default
     $("#statsWindow").css({"left": "70%", "z-index": "9"}).hide();
     // hide opponentStats
@@ -205,7 +220,7 @@ function chooseOpponent() {
         })
         .addClass("highlight")
         .mouseover( () => {
-            refreshStats($("#statsWindow"), element);
+            refreshStats($("#statsWindow"), element, "full");
         })
         .mouseleave(function() {
             $("#statsWindow").hide();
@@ -231,8 +246,10 @@ function setOpponent(character) {
     character.move(0.666, 0.5);
 }
 
-var turn = 0;
 function fight(){
+    var turn = 0;
+    var round = 0;
+
     // activate special abilities
     yourCharacter.useSpecial();
     opponent.useSpecial();
@@ -244,27 +261,17 @@ function fight(){
     refreshStats($("#opponentStats"), opponent, "min");
     // clear highlighting
     $(".characterImg").removeClass("highlight");
-    // fighting time
-    if (yourCharacter.activeSpecial.name == "Armor of God") {
-        $("#banner").show().text("Press spacebar to heal!");
-        $("#subtext").hide();    
-    }
-    else {
-        $("#banner").show().text("Press spacebar to attack!");
-        $("#subtext").show().text("Time your attack for maximum damage.");    
-    }
-
     // set them against each other
-    yourCharacter.opponent = opponent;
-    opponent.opponent = yourCharacter;
+    yourCharacter.active = true;
+    opponent.active = true;
     yourCharacter.ai = false;
     var blocked = false;
 
-    // default special
-    yourCharacter.selectSpecial(yourCharacter.activeSpecial.name);
+    // fighting time
+    yourTurn();
 
-    // have the opponent bounce around
     var gameloop = setInterval(() => {
+        // have the opponent bounce around
         if (!opponent.attacking()){
             if (opponent.y < 0.3){
                 opponent.move(0.666, 0.75, opponent.speed * 2 / difficulty);
@@ -294,6 +301,8 @@ function fight(){
         if (event.key == " ") {
             if (turn == 0) {
                 // your turn - attack
+                // select default special if none is selected
+                if (yourCharacter.activeSpecial == null) yourCharacter.selectSpecial(yourCharacter.special[0].id);
                 yourCharacter.attack(opponent);
                 turn = 1;
                 compAttack();
@@ -319,21 +328,14 @@ function fight(){
                 }, 800);
             }
         }
+        // cheats
         else if (event.key == "+") {
-            yourCharacter.strength += 6;
+            yourCharacter.baseStrength += 6;
             refreshAllStats();
         }
         else if (event.key == "-") {
-            yourCharacter.strength -= 6;
+            yourCharacter.baseStrength -= 6;
             refreshAllStats();
-        }
-        else if (event.keyCode == 38) {
-            if (yourCharacter.y > 0.25) {
-                
-            }
-        }
-        else if (event.keyCode == 40) {
-    
         }
     }
     
@@ -343,15 +345,13 @@ function fight(){
         setTimeout(() => {
             if (!opponent.dead){
                 if (opponent.strength > 0){
-                    $("#banner").show().text("Prepare to defend!");
-                    $("#subtext").show().text("Tap space at the moment of impact for maximum " + 
+                    bannerMessage("Prepare to defend!", "Tap space at the moment of impact for maximum " + 
                         ((yourCharacter.name == "shieldbearer") 
                         ? " blocking power." 
                         : " counter-attack damage."));
                 }
                 else {
-                    $("#banner").show().text("Wait for it...");
-                    $("#subtext").hide();
+                    bannerMessage("Wait for it...");
                 }
             }
         }, delay - 2000);            
@@ -359,18 +359,25 @@ function fight(){
             opponent.attack(yourCharacter);
         }, delay);
         // then your turn again
-        setTimeout(() => {
-            // your turn again
-            if (yourCharacter.activeSpecial.name == "Armor of God") {
-                $("#banner").show().text("Press spacebar to heal!");
-                $("#subtext").hide();    
-            }
-            else {
-                $("#banner").show().text("Press spacebar to attack!");
-                $("#subtext").show().text("Time your attack for maximum damage.");    
-            }
-            turn = 0;
-        }, delay + opponent.speed * 2 + 1000);
+        setTimeout(yourTurn, delay + opponent.speed * 2 + 1000);
+    }
+
+    function yourTurn () {
+        // your turn again
+        round ++;
+        if (round == 1 && yourCharacter.special.length > 1) {
+            bannerMessage("<-- Choose your special ability", "You can change it again next round.");
+        }
+        else if (yourCharacter.activeSpecial.name == "Armor of God") {
+            bannerMessage("Press spacebar to heal!");
+        }
+        else {
+            bannerMessage("Press spacebar to attack!", "Time your attack for maximum damage.");    
+        }
+        // allow a new choice of special
+        // if (yourCharacter.special.length > 1) yourCharacter.activeSpecial = null;
+        refreshStats($("#statsWindow"), yourCharacter, "min-open");
+        turn = 0;        
     }
     
     function win() {
@@ -411,33 +418,47 @@ function randomName(length) {
     return word[0].toUpperCase() + word.slice(1);
 }
 
+function bannerMessage(message, subtext) {
+    if (message != "" && message != undefined) 
+        $("#banner").show().text(message);
+    else
+        $("#banner").hide();
+    if (subtext != "" && subtext != undefined) 
+        $("#subtext").show().text(subtext);    
+    else
+        $("#subtext").hide();
+}
+
 function refreshAllStats() {
     refreshStats ($("#statsWindow"), yourCharacter, "min");
     refreshStats ($("#opponentStats"), opponent, "min");    
 }
 
 function refreshStats ($div, character, style) {
-    if (style == "min") {
+    // get mods up to date
+    character.useSpecial();
+    if (style.slice(0,3) == "min") {
         $div
         .css ({"width": "150px"})
         .html(
             "HP: " + character.hp + " / " + character.maxHp + "<br><br>" +
             "ATTACK: " + character.strength + "<br><br>" +
             "COUNTER-ATTACK: " + character.counter + "<br><br>" +
-            ((character == yourCharacter && yourCharacter.special.length > 1)
+            ((character == yourCharacter && 
+                yourCharacter.special.length > 1 && 
+                style.slice(4) == "open")
             // show all specials (collect them all!)
             ? character.special.map((special) => { 
-                // a clumsy hack to avoid spaces
-                return '<div id="' + special.name.slice(0, 4) + '" \
+                return '<div id="' + special.id + '" \
                 class="specialButton" \
-                onclick="yourCharacter.selectSpecial(\'' + special.name + '\')" \
+                onclick="yourCharacter.selectSpecial(\'' + special.id + '\')" \
                 >' + special.name + ((!special.isMagic) ? ""
                 : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + '</div>';}).join("<br>")
             : character.activeSpecial.name + ((!character.activeSpecial.isMagic) ? ""
                 : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + 
                 ("<br><br>") ))
         .show();
-        if (character == yourCharacter) yourCharacter.selectSpecial(yourCharacter.activeSpecial.name);
+        $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
     }
     else {
         $div
