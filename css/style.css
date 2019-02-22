@@ -71,8 +71,6 @@ body {
     text-align: left;
     color: white;
     padding: 10px;
-    display: flex;
-    flex-direction: column;
     background-color: black;
     margin: auto 0;
 }
@@ -102,6 +100,11 @@ body {
 
 .specialSelect {
     border: 2px solid white;
+}
+
+.noline {
+    display: inline;
+    white-space: pre-line;
 }
 
 hr {

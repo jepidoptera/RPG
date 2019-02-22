@@ -4,6 +4,7 @@ var storyLine = -1;
 var yourCharacter = null;
 var opponent = null;
 var characters = [];
+var sorcerorKing;
 var difficulty = 1;
 var opponentsRemaing = 3;
 
@@ -26,22 +27,16 @@ $(document).ready(function() {
     // add it to the page
     $('body').append($(img));
 
-    // create the king
+    // create the four basic characters
+    initCharacters();
+    // create the evil king
     var kingName =  randomName(9 + Math.round(Math.random())); // "Babadoligo";
-    sorcerorKing = new character(kingName, 'images/goatman.jpg', 600, 10, 10, 8, 
+    sorcerorKing = new character(kingName, 'images/goatman.jpg', 200, 10, 10, 8, 
     [deathstrike, whirlwind, armorOfSatan, lastGasp]);
 
     // // debug, go straight to the bossfight
     // yourCharacter = characters[0];
-    // // opponent = characters[2];
-
-    // characters[0].manifest(0.25, 0.25);
-    // characters[1].manifest(0.25, 0.75);
-    // characters[2].manifest(0.75, 0.25);
-    // characters[3].manifest(0.75, 0.75);
-
-    // yourCharacter.move(0.333, 0.5);
-    // // opponent.move(0.666, 0.5);
+    // yourCharacter.manifest(0.333, 0.5);
 
     // storyLine = 8;
     // continueStory();
@@ -56,6 +51,20 @@ $(document).ready(function() {
         }]));
     }, 4000);
 });
+
+function initCharacters() {
+    // create four characters≈≈
+    characters = [
+        new character('berserker', 'images/berserker.png', 100, 5, 0, 6, [bloodFrenzy]),
+        new character('antimage', 'images/antimage.png', 50, 7, 5, 7, [nullField]),
+        new character('shieldbearer', 'images/shieldbearer.png', 80, 9, 0, 5, [defend]),
+        new character('monk', 'images/monk.png', 70, 0, 10, 4, [armorOfGod])
+    ];
+    // monk beats shieldbearer.
+    // shieldbearer beats antimage.
+    // antimage beats berserker.
+    // berserker beats monk.
+}
 
 function continueStory(){
     // advance the storyline
@@ -138,6 +147,9 @@ function continueStory(){
             text: "next",
             function: chooseOpponent()
         }]));
+        bannerMessage("");
+        $("#opponentStats").hide();
+        $("#statsWindow").hide();
         break;
 
     case 6:
@@ -291,7 +303,7 @@ function fight(){
             // victory
             win();
         }   
-    }, opponent.speed * 2 / difficulty);
+    }, opponent.speed * 1.9 / difficulty);
     // prepare to strike
     // use addeventListener instead of .on because it doesn't cause weird bug!
     document.addEventListener("keydown", attackKeys);
@@ -310,7 +322,7 @@ function fight(){
                 // allow (one) block attempt
                 blocked = false;
             } 
-            else if (opponent.attacking() && !blocked) {
+            else if (opponent.attacking() && !blocked && opponent.strength > 0) {
                 // opponent's turn - block/counterstrike
                 blocked = true;
                 if (opponent.attacking() > opponent.speed) {
@@ -345,13 +357,16 @@ function fight(){
         setTimeout(() => {
             if (!opponent.dead){
                 if (opponent.strength > 0){
-                    bannerMessage("Prepare to defend!", "Tap space at the moment of impact for maximum " + 
+                    bannerMessage("Prepare to defend!", "Tap space when your character flashes red for maximum " + 
                         ((yourCharacter.name == "shieldbearer") 
                         ? " blocking power." 
                         : " counter-attack damage."));
                 }
-                else {
+                else if (!nullFieldActive || !opponent.activeSpecial.isMagic) {
                     bannerMessage("Wait for it...");
+                }
+                else if (opponent.activeSpecial == armorOfGod) {
+                    bannerMessage(opponent.name + " can't heal!", "Null field is blocking his abilities.")
                 }
             }
         }, delay - 2000);            
@@ -359,20 +374,22 @@ function fight(){
             opponent.attack(yourCharacter);
         }, delay);
         // then your turn again
-        setTimeout(yourTurn, delay + opponent.speed * 2 + 1000);
+        setTimeout(() => {
+            // change up special
+            opponent.think();
+            yourTurn ();
+        }, delay + opponent.speed * 2 + 1000);
     }
 
     function yourTurn () {
         // your turn again
         round ++;
+        if (opponent.dead) return;
         if (round == 1 && yourCharacter.special.length > 1) {
             bannerMessage("<-- Choose your special ability", "You can change it again next round.");
         }
-        else if (yourCharacter.activeSpecial.name == "Armor of God") {
-            bannerMessage("Press spacebar to heal!");
-        }
         else {
-            bannerMessage("Press spacebar to attack!", "Time your attack for maximum damage.");    
+            UpdateBanner();
         }
         // allow a new choice of special
         // if (yourCharacter.special.length > 1) yourCharacter.activeSpecial = null;
@@ -429,6 +446,32 @@ function bannerMessage(message, subtext) {
         $("#subtext").hide();
 }
 
+function UpdateBanner(){
+    if (opponent.dead) return;
+    if (yourCharacter.activeSpecial.name == "Armor of God") {
+        if (nullFieldActive){
+            bannerMessage("You can't heal!", "Null field is blocking your abilities.");
+        }
+        else bannerMessage("Press spacebar to heal!");
+    }
+    else {
+        bannerMessage("Press spacebar to attack!", "Time your attack for maximum damage.");    
+    }
+}
+
+function clickSpecial(special) {
+    yourCharacter.selectSpecial(special);
+    // do button select animation
+    // highlight (only) that button
+    $(".specialButton").removeClass("specialSelect");
+    $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
+    // and refresh your stats (close choices)
+    setTimeout(() => {
+        refreshStats($("#statsWindow"), yourCharacter, "min-closed");
+        UpdateBanner();
+    }, 500);
+}
+
 function refreshAllStats() {
     refreshStats ($("#statsWindow"), yourCharacter, "min");
     refreshStats ($("#opponentStats"), opponent, "min");    
@@ -437,43 +480,65 @@ function refreshAllStats() {
 function refreshStats ($div, character, style) {
     // get mods up to date
     character.useSpecial();
+    var html = "HP: " +
+    // show stats in blue when they're modified by magic
+    ((character.hpMod > 0)
+        ? '<span style="color: skyblue">' + character.hp + " / " + character.maxHp + "</span><br><br>"
+        : character.hp + " / " + character.maxHp + "<br><br>"
+    ) + "ATTACK: " +
+    ((character.strengthMod > 0)
+        ? '<span style="color: skyblue">' + character.strength + "</span><br><br>"
+        : character.strength + "<br><br>"
+    ) + "COUNTER-ATTACK: " +
+    ((character.counterMod > 0)
+        ? '<span style="color: skyblue">' + character.counter + "</span><br><br>"
+        : character.counter + "<br><br>"
+    );
     if (style.slice(0,3) == "min") {
-        $div
-        .css ({"width": "150px"})
-        .html(
-            "HP: " + character.hp + " / " + character.maxHp + "<br><br>" +
-            "ATTACK: " + character.strength + "<br><br>" +
-            "COUNTER-ATTACK: " + character.counter + "<br><br>" +
-            ((character == yourCharacter && 
-                yourCharacter.special.length > 1 && 
-                style.slice(4) == "open")
+        html +=
+        // show an open menu of possible specials on your character's turn
+        ((character == yourCharacter && 
+        yourCharacter.special.length > 1 && 
+        style.slice(4) == "open")
             // show all specials (collect them all!)
+            // also, don't worry about what all this means, just know that it works
             ? character.special.map((special) => { 
                 return '<div id="' + special.id + '" \
                 class="specialButton" \
-                onclick="yourCharacter.selectSpecial(\'' + special.id + '\')" \
-                >' + special.name + ((!special.isMagic) ? ""
-                : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + '</div>';}).join("<br>")
+                onclick="clickSpecial(\'' + special.id + '\')" \
+                >' + special.name + 
+                ((special.isMagic) 
+                    ? ((!nullFieldActive || nullFieldActive == character.name) 
+                        ? " (magic)" 
+                        : '<span style ="color: red"> (nullified!)</span>')
+                    : ""
+                ) + '</div>';}).join("<br>")
             : character.activeSpecial.name + ((!character.activeSpecial.isMagic) ? ""
-                : (!nullFieldActive ? " (magic)" : '<span style ="color: red"> (nullified!)</span>')) + 
-                ("<br><br>") ))
+                : ((!nullFieldActive || nullFieldActive == character.name) 
+                    ? " (magic)" 
+                    : '<span style ="color: red"> (nullified!)</span>')
+                ) + 
+        ("<br><br>") );
+
+        $div
+        .css ({"width": "150px"})
+        .html(html)
         .show();
         $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
     }
     else {
+        html =  "<h2>" + character.name.toUpperCase() + "</h2> <br>" + html +
+        // explicitly show speed
+        "SPEED: " + character.quickness + "<br><br>" +
+        // these characters will only have one special
+        "SPECIAL: " + character.special[0].name + ((character.special[0].isMagic)
+        ? (!nullFieldActive ? " (magic)" : "<style ='color:red'>(nullified!)</style>")
+        : "") +
+        // full description
+        "<br><hr>" + character.special[0].description;
         $div
         .css ({"width": "250px"})
-        .html(
-            "<h2>" + character.name.toUpperCase() + "</h2> <br>" +
-            "HP: " + character.hp + "<br><br>" +
-            "ATTACK: " + character.strength + "<br><br>" +
-            "COUNTER-ATTACK: " + character.counter + "<br><br>" +
-            "SPEED: " + character.quickness + "<br><br>" +
-            // these characters will only have one special
-            "SPECIAL: " + character.special[0].name + ((character.special[0].isMagic)
-            ? (!nullFieldActive ? " (magic)" : "<style ='color:red'>(nullified!)</style>")
-            : "") +
-            "<br><hr>" + character.special[0].description)
+        .html(html)
         .show();
         }
 }
