@@ -126,8 +126,8 @@ class character {
         // }
 
         // shieldbearer blocks instead of counterattack
-        // if (this.special.map((special) => {return special.name;}).indexOf("Defend") >= 0) {
-        if (this.activeSpecial.name == "Defend") {
+        if (this.special.map((special) => {return special.name;}).indexOf("Defend") >= 0) {
+        // if (this.activeSpecial.name == "Defend") {
             console.log("block skill: " + skill);
             // show how much was blocked
             var blocked = otherCharacter.damage - Math.floor(otherCharacter.damage * (1 - skill));

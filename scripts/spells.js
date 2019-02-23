@@ -77,16 +77,17 @@ Object.defineProperty(character.prototype, "useSpecial", {
     this.hpMod = 0;
     this.counterMod = 0;
     this.speedMod = 1;
+    this.special.forEach((special) => {
     // apply effects
-    if (!nullFieldActive || !this.activeSpecial.isMagic || nullFieldActive == this.name) {
+    if (!nullFieldActive || !special.isMagic || nullFieldActive == this.name) {
         // if it hasn't been nullified, do the thing
-        switch (this.activeSpecial) {
+        switch (special) {
         case nullField:
             strengthMod = 9;
             break;
         case armorOfGod:
             // can't heal and attack both
-            this.strengthMod = -this.baseStrength;
+            // this.strengthMod = -this.baseStrength;
             // only activates once per turn    
             if (this.usedSpecial || !this.attacking()) break;
             this.usedSpecial = true;
@@ -123,6 +124,7 @@ Object.defineProperty(character.prototype, "useSpecial", {
         case lastGasp:
             this.hpMod = 50; break;
         }
-    }
+    }        
+    });
     }
 });

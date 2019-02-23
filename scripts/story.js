@@ -269,7 +269,7 @@ function fight(){
     // show stats for both characters
     $("#statsWindow").show().css({"top": "50%", "left": "20%", "display": "block", "transform": "translate(-50%, -50%)", "position": "absolute", "z-index": "9"});
     $("#opponentStats").show().css({"top": "50%", "left": "80%", "display": "block", "transform": "translate(-50%, -50%)", "position": "absolute", "z-index": "9"});
-    refreshStats($("#statsWindow"), yourCharacter, "min");
+    refreshStats($("#statsWindow"), yourCharacter, "min-open");
     refreshStats($("#opponentStats"), opponent, "min");
     // clear highlighting
     $(".characterImg").removeClass("highlight");
@@ -314,7 +314,7 @@ function fight(){
             if (turn == 0) {
                 // your turn - attack
                 // select default special if none is selected
-                if (yourCharacter.activeSpecial == null) yourCharacter.selectSpecial(yourCharacter.special[0].id);
+                // if (yourCharacter.activeSpecial == null) yourCharacter.selectSpecial(yourCharacter.special[0].id);
                 yourCharacter.attack(opponent);
                 turn = 1;
                 compAttack();
@@ -366,7 +366,7 @@ function fight(){
                     bannerMessage("Wait for it...");
                 }
                 else if (opponent.activeSpecial == armorOfGod) {
-                    bannerMessage(opponent.name + " can't heal!", "Null field is blocking his abilities.")
+                    bannerMessage(opponent.name + " can't heal!", "Null field is blocking his abilities.");
                 }
             }
         }, delay - 2000);            
@@ -385,12 +385,12 @@ function fight(){
         // your turn again
         round ++;
         if (opponent.dead) return;
-        if (round == 1 && yourCharacter.special.length > 1) {
-            bannerMessage("<-- Choose your special ability", "You can change it again next round.");
-        }
-        else {
+        // if (round == 1 && yourCharacter.special.length > 1) {
+        //     bannerMessage("<-- Choose your special ability", "You can change it again next round.");
+        // }
+        // else {
             UpdateBanner();
-        }
+        // }
         // allow a new choice of special
         // if (yourCharacter.special.length > 1) yourCharacter.activeSpecial = null;
         refreshStats($("#statsWindow"), yourCharacter, "min-open");
@@ -448,14 +448,17 @@ function bannerMessage(message, subtext) {
 
 function UpdateBanner(){
     if (opponent.dead) return;
-    if (yourCharacter.activeSpecial.name == "Armor of God") {
+    if (yourCharacter.name == "monk" && yourCharacter.strength == 0) {
         if (nullFieldActive){
             bannerMessage("You can't heal!", "Null field is blocking your abilities.");
         }
         else bannerMessage("Press spacebar to heal!");
     }
-    else {
+    else if (yourCharacter.strength > 0) {
         bannerMessage("Press spacebar to attack!", "Time your attack for maximum damage.");    
+    }
+    else {
+        bannerMessage("");
     }
 }
 
@@ -464,7 +467,7 @@ function clickSpecial(special) {
     // do button select animation
     // highlight (only) that button
     $(".specialButton").removeClass("specialSelect");
-    $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
+    // $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
     // and refresh your stats (close choices)
     setTimeout(() => {
         refreshStats($("#statsWindow"), yourCharacter, "min-closed");
@@ -504,9 +507,9 @@ function refreshStats ($div, character, style) {
             // also, don't worry about what all this means, just know that it works
             ? character.special.map((special) => { 
                 return '<div id="' + special.id + '" \
-                class="specialButton" \
-                onclick="clickSpecial(\'' + special.id + '\')" \
-                >' + special.name + 
+                class="specialButton" ' +
+                // onclick="clickSpecial(\'' + special.id + '\')" \
+                '>' + special.name + 
                 ((special.isMagic) 
                     ? ((!nullFieldActive || nullFieldActive == character.name) 
                         ? " (magic)" 
@@ -524,7 +527,7 @@ function refreshStats ($div, character, style) {
         .css ({"width": "150px"})
         .html(html)
         .show();
-        $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
+        // $("#" + yourCharacter.activeSpecial.id).addClass("specialSelect");
     }
     else {
         html =  "<h2>" + character.name.toUpperCase() + "</h2> <br>" + html +
