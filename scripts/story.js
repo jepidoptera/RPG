@@ -476,7 +476,7 @@ function clickSpecial(special) {
 }
 
 function refreshAllStats() {
-    refreshStats ($("#statsWindow"), yourCharacter, "min");
+    refreshStats ($("#statsWindow"), yourCharacter, "min-open");
     refreshStats ($("#opponentStats"), opponent, "min");    
 }
 
