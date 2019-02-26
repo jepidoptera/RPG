@@ -83,7 +83,7 @@ Object.defineProperty(character.prototype, "useSpecial", {
         // if it hasn't been nullified, do the thing
         switch (special) {
         case nullField:
-            strengthMod = 9;
+            this.strengthMod = 9;
             break;
         case armorOfGod:
             // can't heal and attack both
